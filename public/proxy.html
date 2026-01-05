@@ -1,76 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - School Proxy</title>
+  <title>URL Proxy - Browser Tools</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       text-align: center;
-      margin: 50px;
-      background: linear-gradient(to right, #ff6f61, #de2d26);
-      color: white;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+      background: radial-gradient(circle at top, #ff9a8b, #de2d26);
+      color: #fff;
     }
     h1 {
+      margin-bottom: 20px;
+      font-size: 2.2rem;
       color: #ffef96;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
     }
     input[type="text"] {
-      padding: 10px;
-      width: 80%;
-      max-width: 600px;
+      padding: 12px 14px;
+      width: 100%;
       border: 2px solid #ffef96;
-      border-radius: 5px;
-      margin-bottom: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
       font-size: 16px;
       color: #333;
+      outline: none;
+    }
+    input[type="text"]::placeholder {
+      color: #777;
     }
     input[type="submit"] {
-      padding: 10px 20px;
-      background-color: #4CAF50;
+      padding: 10px 24px;
+      background: #4CAF50;
       border: none;
       color: white;
-      border-radius: 5px;
+      border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background 0.2s ease, transform 0.1s ease;
     }
     input[type="submit"]:hover {
-      background-color: #45a049;
+      background: #45a049;
+      transform: translateY(-1px);
+    }
+    input[type="submit"]:active {
+      transform: translateY(0);
+    }
+    p {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
   <h1>URL Proxy</h1>
   <form id="proxyForm">
-    <input type="text" id="proxyInput" placeholder="Voer een URL of zoekopdracht in">
+    <input
+      type="text"
+      id="proxyInput"
+      placeholder="Voer een URL of zoekopdracht in (bijv. youtube.com of 'katten video')"
+    >
     <input type="submit" value="Ga">
+    <p>URL → wordt via proxy geladen &nbsp;•&nbsp; Tekst → wordt een Ecosia zoekopdracht</p>
   </form>
+
   <script>
-document.getElementById('proxyForm').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const input = document.getElementById('proxyInput').value.trim();
+    document.getElementById('proxyForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const input = document.getElementById('proxyInput').value.trim();
 
-  // 1. Probeer te bepalen of het een URL is
-  function isValidUrl(str) {
-    try {
-      new URL(str.startsWith("http") ? str : "http://" + str);
-      return true;
-    } catch {
-      return false;
-    }
-  }
+      if (!input) return;
 
-  // 2. Als het een URL is → proxy
-  if (isValidUrl(input)) {
-    const targetUrl = input.startsWith("http") ? input : `http://${input}`;
-    window.location.href = `/proxy?url=${encodeURIComponent(targetUrl)}`;
-    return;
-  }
+      function isValidUrl(str) {
+        try {
+          new URL(str.startsWith('http') ? str : 'http://' + str);
+          return true;
+        } catch {
+          return false;
+        }
+      }
 
-  // 3. Anders → zoekopdracht
-  window.location.href = `/search?q=${encodeURIComponent(input)}`;
-});
-</script>
+      // Als het een (geldige) URL lijkt → proxy
+      if (isValidUrl(input)) {
+        const targetUrl = input.startsWith('http') ? input : `http://${input}`;
+        window.location.href = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+        return;
+      }
+
+      // Anders → zoekopdracht
+      window.location.href = `/search?q=${encodeURIComponent(input)}`;
+    });
+  </script>
 </body>
 </html>
