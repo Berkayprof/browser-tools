@@ -42,36 +42,29 @@ app.use('/proxy', (req, res, next) => {
   }
 
   let parsedUrl;
-
   try {
     parsedUrl = new URL(targetUrl);
   } catch (err) {
-    console.error('Invalid URL:', err.message);
     return res.status(400).send('Bad Request: Invalid URL');
   }
 
-  // Herschrijf de URL van de inkomende request zodat de proxy weet wat hij precies moet opvragen
-  // Voorbeeld:
-  //   /proxy?url=https://example.com/path?q=1
-  // wordt:
-  //   req.url = /path?q=1  (naar target origin: https://example.com)
-  req.url = parsedUrl.pathname + parsedUrl.search;
-
-  const proxy = createProxyMiddleware({
-    target: parsedUrl.origin,      // https://example.com
+  return createProxyMiddleware({
+    target: parsedUrl.origin,
     changeOrigin: true,
     followRedirects: true,
-    // Je wilt GEEN extra pathRewrite meer, omdat we req.url al hebben gezet
-    logLevel: 'warn',
+
+    // Belangrijk: laat de proxy zelf de volledige URL opbouwen
+    pathRewrite: (path, req) => {
+      return parsedUrl.pathname + parsedUrl.search;
+    },
+
     onError: (err, req, res) => {
       console.error('Proxy error:', err.message);
       if (!res.headersSent) {
         res.status(500).send('Proxy error: ' + err.message);
       }
     }
-  });
-
-  return proxy(req, res, next);
+  })(req, res, next);
 });
 
 // Hoofdpagina
