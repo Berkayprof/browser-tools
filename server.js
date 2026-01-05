@@ -4,7 +4,7 @@ const path = require('path');
 
 const app = express();
 
-// Schakel caching uit
+// Caching volledig uit
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
@@ -13,10 +13,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware om statische bestanden te serveren vanuit de public map
+// Statische files uit /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// **Zoekopdrachten via Ecosia**
+// Zoekopdrachten via Ecosia
 app.get('/search', (req, res) => {
   const query = req.query.q;
   if (query) {
@@ -26,44 +26,66 @@ app.get('/search', (req, res) => {
   }
 });
 
-// **Proxy voor ALLE URL's**
+/**
+ * Proxy endpoint:
+ * /proxy?url=https://voorbeeld.nl/pad?x=1
+ *
+ * - Valideert de URL
+ * - Zet req.url om naar het pad van de target
+ * - Stuurt de request door met http-proxy-middleware
+ */
 app.use('/proxy', (req, res, next) => {
   const targetUrl = req.query.url;
+
   if (!targetUrl) {
     return res.status(400).send('Bad Request: No URL provided');
   }
 
-  try {
-    // Valideer en parse de URL
-    const parsedUrl = new URL(targetUrl);
+  let parsedUrl;
 
-    // Voer de proxy correct uit
-    createProxyMiddleware({
-      target: parsedUrl.origin, // Gebruik de volledige host
-      changeOrigin: true,
-      pathRewrite: { '^/proxy': '' }, // Zorgt ervoor dat het pad niet wordt aangepast
-      onError: (err, req, res) => {
-        console.error('Proxy error:', err.message);
-        res.status(500).send('Proxy error: ' + err.message);
-      }
-    })(req, res, next);
+  try {
+    parsedUrl = new URL(targetUrl);
   } catch (err) {
     console.error('Invalid URL:', err.message);
-    res.status(400).send('Bad Request: Invalid URL');
+    return res.status(400).send('Bad Request: Invalid URL');
   }
+
+  // Herschrijf de URL van de inkomende request zodat de proxy weet wat hij precies moet opvragen
+  // Voorbeeld:
+  //   /proxy?url=https://example.com/path?q=1
+  // wordt:
+  //   req.url = /path?q=1  (naar target origin: https://example.com)
+  req.url = parsedUrl.pathname + parsedUrl.search;
+
+  const proxy = createProxyMiddleware({
+    target: parsedUrl.origin,      // https://example.com
+    changeOrigin: true,
+    followRedirects: true,
+    // Je wilt GEEN extra pathRewrite meer, omdat we req.url al hebben gezet
+    logLevel: 'warn',
+    onError: (err, req, res) => {
+      console.error('Proxy error:', err.message);
+      if (!res.headersSent) {
+        res.status(500).send('Proxy error: ' + err.message);
+      }
+    }
+  });
+
+  return proxy(req, res, next);
 });
 
-// Route om de hoofdpagina te serveren
+// Hoofdpagina
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Aangepaste foutpagina
+// Aangepaste 404 pagina
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', 'error.html'));
 });
 
-// Start de server
-app.listen(process.env.PORT || 3000, () => {
-  console.log('Proxy server is running on port 3000');
+// Start de server (Render gebruikt zelf PORT variabele)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Proxy server is running on port ' + PORT);
 });
