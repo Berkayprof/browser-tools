@@ -47,17 +47,30 @@
     <input type="submit" value="Ga">
   </form>
   <script>
-    document.getElementById('proxyForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const input = document.getElementById('proxyInput').value.trim();
-      const urlPattern = new RegExp('^(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})([/\\w .-]*)*/?$');
-      if (urlPattern.test(input)) {
-        const targetUrl = new URL(input.startsWith('http') ? input : `http://${input}`);
-        window.location.href = `/proxy?url=${encodeURIComponent(targetUrl.href)}`;
-      } else {
-        window.location.href = `/search?q=${encodeURIComponent(input)}`;
-      }
-    });
-  </script>
+document.getElementById('proxyForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const input = document.getElementById('proxyInput').value.trim();
+
+  // 1. Probeer te bepalen of het een URL is
+  function isValidUrl(str) {
+    try {
+      new URL(str.startsWith("http") ? str : "http://" + str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // 2. Als het een URL is → proxy
+  if (isValidUrl(input)) {
+    const targetUrl = input.startsWith("http") ? input : `http://${input}`;
+    window.location.href = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    return;
+  }
+
+  // 3. Anders → zoekopdracht
+  window.location.href = `/search?q=${encodeURIComponent(input)}`;
+});
+</script>
 </body>
 </html>
