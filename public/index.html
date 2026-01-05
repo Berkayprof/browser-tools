@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Tools</title>
+
+<style>
+    :root {
+        --bg: #f5f5f7;
+        --text: #111;
+        --card-bg: rgba(255, 255, 255, 0.55);
+        --accent: #4a8bff;
+        --accent-hover: #2f6ef0;
+        --shadow: rgba(0, 0, 0, 0.15);
+        --blur: 18px;
+    }
+
+    /* DARK THEME */
+    :root.dark {
+        --bg: #0f1115;
+        --text: #f1f1f1;
+        --card-bg: rgba(30, 32, 38, 0.55);
+        --accent: #6aa0ff;
+        --accent-hover: #8bb4ff;
+        --shadow: rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        transition: background 0.3s ease, color 0.3s ease;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 25px;
+        font-weight: 700;
+        text-shadow: 0 4px 20px var(--shadow);
+        animation: fadeIn 0.7s ease forwards;
+    }
+
+    /* Glassmorphism container */
+    .container {
+        width: 100%;
+        max-width: 600px;
+        padding: 30px;
+        border-radius: 20px;
+        background: var(--card-bg);
+        backdrop-filter: blur(var(--blur));
+        box-shadow: 0 8px 30px var(--shadow);
+        animation: slideUp 0.6s ease forwards;
+    }
+
+    .tool-button {
+        display: block;
+        padding: 16px;
+        margin: 15px 0;
+        text-decoration: none;
+        color: white;
+        background: var(--accent);
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-align: center;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .tool-button:hover {
+        background: var(--accent-hover);
+        transform: translateY(-3px);
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        backdrop-filter: blur(var(--blur));
+        border: none;
+        padding: 12px 18px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        color: var(--text);
+        box-shadow: 0 4px 20px var(--shadow);
+        transition: transform 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+        transform: scale(1.05);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<h1>Browser Tools</h1>
+
+<div class="container">
+    <a class="tool-button" href="calc.html">Rekenmachine</a>
+    <a class="tool-button" href="color.html">Colorpicker</a>
+    <a class="tool-button" href="youtube.html">YouTube Downloader</a>
+    <a class="tool-button" href="proxy.html">Proxy Searcher</a>
+</div>
+
+<script>
+    const root = document.documentElement;
+    const toggleBtn = document.getElementById("themeToggle");
+
+    // Load saved theme
+    if (localStorage.getItem("theme") === "dark") {
+        root.classList.add("dark");
+    }
+
+    toggleBtn.addEventListener("click", () => {
+        root.classList.toggle("dark");
+
+        // Save preference
+        if (root.classList.contains("dark")) {
+            localStorage.setItem("theme", "dark");
+        } else {
+            localStorage.setItem("theme", "light");
+        }
+    });
+</script>
+
+</body>
+</html>
