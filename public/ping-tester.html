@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ping / Latency Tester</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+input {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.9rem;
+}
+button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.stats {
+    margin-top: 16px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.stats div {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+canvas {
+    margin-top: 16px;
+    width: 100%;
+    height: 260px;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>⚡ Ping / Latency Tester</h1>
+    <p class="desc">Meet je netwerkvertraging via HTTP‑requests. Werkt volledig in de browser.</p>
+
+    <div class="controls">
+        <input type="text" id="target" value="https://www.google.com" placeholder="URL om te pingen">
+        <button id="startBtn">Start</button>
+        <button id="stopBtn" disabled>Stop</button>
+    </div>
+
+    <div class="stats">
+        <div><strong>Laatste ping:</strong> <span id="lastPing">—</span> ms</div>
+        <div><strong>Gemiddelde:</strong> <span id="avgPing">—</span> ms</div>
+        <div><strong>Laagste:</strong> <span id="minPing">—</span> ms</div>
+        <div><strong>Hoogste:</strong> <span id="maxPing">—</span> ms</div>
+    </div>
+
+    <canvas id="chart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const targetEl = document.getElementById("target");
+
+const lastPingEl = document.getElementById("lastPing");
+const avgPingEl = document.getElementById("avgPing");
+const minPingEl = document.getElementById("minPing");
+const maxPingEl = document.getElementById("maxPing");
+
+let running = false;
+let pings = [];
+let intervalId = null;
+
+// Chart.js setup
+const ctx = document.getElementById("chart").getContext("2d");
+const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [{
+            label: "Ping (ms)",
+            data: [],
+            borderColor: "#4a8bff",
+            borderWidth: 2,
+            tension: 0.2
+        }]
+    },
+    options: {
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+async function measurePing() {
+    const url = targetEl.value.trim();
+    if (!url) return;
+
+    const start = performance.now();
+    try {
+        await fetch(url, { mode: "no-cors" });
+    } catch (e) {
+        // no-cors geeft geen errors, dus dit is oké
+    }
+    const end = performance.now();
+
+    const ping = Math.round(end - start);
+    pings.push(ping);
+
+    // Update stats
+    lastPingEl.textContent = ping;
+    avgPingEl.textContent = Math.round(pings.reduce((a,b)=>a+b,0) / pings.length);
+    minPingEl.textContent = Math.min(...pings);
+    maxPingEl.textContent = Math.max(...pings);
+
+    // Update chart
+    chart.data.labels.push("");
+    chart.data.datasets[0].data.push(ping);
+    if (chart.data.labels.length > 30) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+    chart.update();
+}
+
+startBtn.addEventListener("click", () => {
+    if (running) return;
+    running = true;
+    pings = [];
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    intervalId = setInterval(measurePing, 1000);
+});
+
+stopBtn.addEventListener("click", () => {
+    running = false;
+    clearInterval(intervalId);
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+});
+</script>
+
+</body>
+</html>
