@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter</title>
+
+<style>
+    :root {
+        --bg: #f5f7fa;
+        --text: #1a1a1a;
+        --card-bg: rgba(255,255,255,0.55);
+        --accent: #4a8bff;
+        --accent-hover: #2f6ef0;
+        --shadow: rgba(0,0,0,0.15);
+        --blur: 18px;
+    }
+    :root.dark {
+        --bg: #0f1115;
+        --text: #f1f1f1;
+        --card-bg: rgba(30,32,38,0.55);
+        --accent: #6aa0ff;
+        --accent-hover: #8bb4ff;
+        --shadow: rgba(0,0,0,0.6);
+    }
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", sans-serif;
+        padding: 20px;
+    }
+    .box {
+        max-width: 900px;
+        margin: auto;
+        background: var(--card-bg);
+        backdrop-filter: blur(var(--blur));
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px var(--shadow);
+    }
+    textarea {
+        width: 100%;
+        height: 300px;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1rem;
+        font-family: monospace;
+    }
+    button {
+        padding: 12px 20px;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-right: 10px;
+        transition: .2s;
+    }
+    button:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+    }
+    .error {
+        color: #ff4d4d;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h1>🧩 JSON Formatter & Validator</h1>
+
+    <textarea id="input" placeholder="Plak JSON hier..."></textarea>
+
+    <br><br>
+
+    <button onclick="formatJSON()">Beautify</button>
+    <button onclick="minifyJSON()">Minify</button>
+    <button onclick="validateJSON()">Validate</button>
+
+    <div id="error" class="error"></div>
+</div>
+
+<script>
+function formatJSON() {
+    try {
+        const obj = JSON.parse(document.getElementById("input").value);
+        document.getElementById("input").value = JSON.stringify(obj, null, 4);
+        document.getElementById("error").textContent = "";
+    } catch (e) {
+        document.getElementById("error").textContent = "❌ Fout: " + e.message;
+    }
+}
+function minifyJSON() {
+    try {
+        const obj = JSON.parse(document.getElementById("input").value);
+        document.getElementById("input").value = JSON.stringify(obj);
+        document.getElementById("error").textContent = "";
+    } catch (e) {
+        document.getElementById("error").textContent = "❌ Fout: " + e.message;
+    }
+}
+function validateJSON() {
+    try {
+        JSON.parse(document.getElementById("input").value);
+        document.getElementById("error").textContent = "✔ JSON is geldig";
+    } catch (e) {
+        document.getElementById("error").textContent = "❌ Fout: " + e.message;
+    }
+}
+
+if (localStorage.getItem("theme") === "dark") {
+    document.documentElement.classList.add("dark");
+}
+</script>
+
+</body>
+</html>
