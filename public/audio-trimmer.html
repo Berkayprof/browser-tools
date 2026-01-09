@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Trimmer</title>
+
+<style>
+:root { --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px; }
+:root.dark { --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6); }
+
+body {
+  background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif;
+  min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+}
+.box {
+  max-width:600px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow); text-align:center;
+}
+input, button {
+  width:100%; padding:12px; border-radius:10px; border:none; margin-bottom:10px;
+}
+button {
+  background:var(--accent); color:#fff; cursor:pointer; transition:.2s;
+}
+button:hover { background:var(--accent-hover); transform:translateY(-2px); }
+audio { width:100%; margin-top:10px; }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>🎧 Audio Trimmer</h1>
+
+  <input type="file" id="file" accept="audio/*">
+  <audio id="player" controls></audio>
+
+  <label>Start (sec)</label>
+  <input type="number" id="start" value="0">
+
+  <label>Einde (sec)</label>
+  <input type="number" id="end" value="5">
+
+  <button onclick="trimAudio()">Trim Audio</button>
+</div>
+
+<script>
+let audioBuffer, audioCtx;
+
+document.getElementById("file").onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  document.getElementById("player").src = url;
+
+  audioCtx = new AudioContext();
+  const arrayBuffer = await file.arrayBuffer();
+  audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+  document.getElementById("end").value = Math.floor(audioBuffer.duration);
+};
+
+async function trimAudio() {
+  if (!audioBuffer) return;
+
+  const start = parseFloat(document.getElementById("start").value);
+  const end = parseFloat(document.getElementById("end").value);
+
+  if (end <= start) return alert("Eindtijd moet groter zijn dan starttijd");
+
+  const duration = end - start;
+  const sampleRate = audioBuffer.sampleRate;
+
+  const trimmed = audioCtx.createBuffer(
+    audioBuffer.numberOfChannels,
+    duration * sampleRate,
+    sampleRate
+  );
+
+  for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+    const channelData = audioBuffer.getChannelData(ch);
+    const trimmedData = trimmed.getChannelData(ch);
+
+    for (let i = 0; i < trimmedData.length; i++) {
+      trimmedData[i] = channelData[i + start * sampleRate];
+    }
+  }
+
+  const wav = bufferToWav(trimmed);
+  const blob = new Blob([wav], { type: "audio/wav" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "trimmed.wav";
+  a.click();
+}
+
+function bufferToWav(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const samples = buffer.length;
+
+  const blockAlign = numChannels * 2;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = samples * blockAlign;
+
+  const bufferArray = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(bufferArray);
+
+  let offset = 0;
+
+  function writeString(s) {
+    for (let i = 0; i < s.length; i++) view.setUint8(offset++, s.charCodeAt(i));
+  }
+
+  writeString("RIFF");
+  view.setUint32(offset, 36 + dataSize, true); offset += 4;
+  writeString("WAVE");
+
+  writeString("fmt ");
+  view.setUint32(offset, 16, true); offset += 4;
+  view.setUint16(offset, 1, true); offset += 2;
+  view.setUint16(offset, numChannels, true); offset += 2;
+  view.setUint32(offset, sampleRate, true); offset += 4;
+  view.setUint32(offset, byteRate, true); offset += 4;
+  view.setUint16(offset, blockAlign, true); offset += 2;
+  view.setUint16(offset, 16, true); offset += 2;
+
+  writeString("data");
+  view.setUint32(offset, dataSize, true); offset += 4;
+
+  for (let i = 0; i < samples; i++) {
+    for (let ch = 0; ch < numChannels; ch++) {
+      let sample = buffer.getChannelData(ch)[i];
+      sample = Math.max(-1, Math.min(1, sample));
+      view.setInt16(offset, sample * 0x7fff, true);
+      offset += 2;
+    }
+  }
+
+  return bufferArray;
+}
+
+if (localStorage.getItem("theme")==="dark"){
+  document.documentElement.classList.add("dark");
+}
+</script>
+
+</body>
+</html>
