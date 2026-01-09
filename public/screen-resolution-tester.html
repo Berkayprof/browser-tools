@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen Resolution Tester</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 700px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.info-box {
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.info-box div {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🖥 Screen Resolution Tester</h1>
+    <p class="desc">Bekijk schermresolutie, viewport, pixel ratio en meer.</p>
+
+    <div class="info-box" id="infoBox">
+        <div><strong>Schermresolutie:</strong> <span id="screenRes"></span></div>
+        <div><strong>Viewport:</strong> <span id="viewport"></span></div>
+        <div><strong>Pixel Ratio:</strong> <span id="pixelRatio"></span></div>
+        <div><strong>Refresh Rate:</strong> <span id="refreshRate">Meten...</span></div>
+        <div><strong>Orientatie:</strong> <span id="orientation"></span></div>
+        <div><strong>Browser Venster:</strong> <span id="windowSize"></span></div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Elements
+const screenRes = document.getElementById("screenRes");
+const viewport = document.getElementById("viewport");
+const pixelRatio = document.getElementById("pixelRatio");
+const refreshRate = document.getElementById("refreshRate");
+const orientation = document.getElementById("orientation");
+const windowSize = document.getElementById("windowSize");
+
+// Update static info
+function updateInfo() {
+    screenRes.textContent = `${screen.width} × ${screen.height}`;
+    viewport.textContent = `${window.innerWidth} × ${window.innerHeight}`;
+    pixelRatio.textContent = window.devicePixelRatio;
+    orientation.textContent = screen.orientation?.type || "Onbekend";
+    windowSize.textContent = `${window.outerWidth} × ${window.outerHeight}`;
+}
+
+updateInfo();
+window.addEventListener("resize", updateInfo);
+
+// Measure refresh rate
+let last = performance.now();
+let frames = 0;
+
+function measureFPS(now) {
+    frames++;
+    if (now - last >= 1000) {
+        refreshRate.textContent = `${frames} Hz`;
+        frames = 0;
+        last = now;
+    }
+    requestAnimationFrame(measureFPS);
+}
+
+requestAnimationFrame(measureFPS);
+</script>
+
+</body>
+</html>
