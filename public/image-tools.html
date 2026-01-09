@@ -16,15 +16,23 @@ body {
   min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
 }
 .box {
-  max-width:700px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  max-width:900px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
   padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow);
+}
+.controls {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-top:10px;
+}
+label { font-size:.9rem; display:block; margin-bottom:4px; }
+input[type="range"], input[type="number"] {
+  width:100%; border-radius:8px; border:none; padding:4px;
 }
 button {
   padding:10px 20px; border-radius:10px; border:none; background:var(--accent); color:#fff;
-  cursor:pointer; transition:.2s; margin:5px;
+  cursor:pointer; transition:.2s; margin-top:10px; margin-right:5px;
 }
 button:hover { background:var(--accent-hover); transform:translateY(-2px); }
-canvas { max-width:100%; margin-top:15px; border-radius:10px; }
+canvas { max-width:100%; margin-top:15px; border-radius:10px; background:#0001; }
+small { opacity:.8; font-size:.8rem; }
 </style>
 </head>
 
@@ -33,62 +41,108 @@ canvas { max-width:100%; margin-top:15px; border-radius:10px; }
 <div class="box">
   <h1>🖼️ Image Tools</h1>
 
-  <input type="file" id="file" accept="image/*"><br><br>
+  <input type="file" id="file" accept="image/*"><br>
 
-  <button onclick="resize()">Resize</button>
-  <button onclick="compress()">Compress</button>
-  <button onclick="crop()">Crop (center)</button>
+  <div class="controls">
+    <div>
+      <label>Resize (% van origineel)</label>
+      <input type="range" id="resizePercent" min="10" max="200" value="100" oninput="updateLabels()">
+      <small id="resizeLabel">100%</small>
+    </div>
+    <div>
+      <label>Compressie kwaliteit (JPEG)</label>
+      <input type="range" id="quality" min="10" max="100" value="80" oninput="updateLabels()">
+      <small id="qualityLabel">80%</small>
+    </div>
+    <div>
+      <label>Crop marges (%)</label>
+      <small>Links / Rechts / Boven / Onder</small>
+      <input type="number" id="cropLeft" min="0" max="40" value="0">
+      <input type="number" id="cropRight" min="0" max="40" value="0">
+      <input type="number" id="cropTop" min="0" max="40" value="0">
+      <input type="number" id="cropBottom" min="0" max="40" value="0">
+    </div>
+  </div>
+
+  <button onclick="applyAll()">Pas toe</button>
+  <button onclick="download()">Download</button>
 
   <canvas id="canvas"></canvas>
 </div>
 
 <script>
-let img=new Image();
-let canvas=document.getElementById("canvas");
-let ctx=canvas.getContext("2d");
+let img = new Image();
+let original = null;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-document.getElementById("file").onchange=e=>{
-  const file=e.target.files[0];
-  img.src=URL.createObjectURL(file);
-  img.onload=()=>draw(img);
+document.getElementById("file").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  img = new Image();
+  img.src = URL.createObjectURL(file);
+  img.onload = () => {
+    original = { width: img.width, height: img.height };
+    draw(img.width, img.height, 0, 0, img.width, img.height);
+  };
 };
 
-function draw(image){
-  canvas.width=image.width;
-  canvas.height=image.height;
-  ctx.drawImage(image,0,0);
+function draw(w, h, sx, sy, sw, sh) {
+  canvas.width = w;
+  canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
 }
 
-function resize(){
-  canvas.width=img.width/2;
-  canvas.height=img.height/2;
-  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+function updateLabels() {
+  document.getElementById("resizeLabel").textContent =
+    document.getElementById("resizePercent").value + "%";
+  document.getElementById("qualityLabel").textContent =
+    document.getElementById("quality").value + "%";
 }
 
-function compress(){
-  const data=canvas.toDataURL("image/jpeg",0.5);
-  let c2=document.createElement("canvas");
-  let x2=c2.getContext("2d");
-  let temp=new Image();
-  temp.src=data;
-  temp.onload=()=>{
-    c2.width=temp.width;
-    c2.height=temp.height;
-    x2.drawImage(temp,0,0);
-    canvas.width=temp.width;
-    canvas.height=temp.height;
-    ctx.drawImage(temp,0,0);
-  };
+function applyAll() {
+  if (!original) return;
+
+  const resizePercent = parseInt(document.getElementById("resizePercent").value, 10);
+  const q = parseInt(document.getElementById("quality").value, 10) / 100;
+
+  const leftP = parseInt(document.getElementById("cropLeft").value, 10) / 100;
+  const rightP = parseInt(document.getElementById("cropRight").value, 10) / 100;
+  const topP = parseInt(document.getElementById("cropTop").value, 10) / 100;
+  const bottomP = parseInt(document.getElementById("cropBottom").value, 10) / 100;
+
+  const cropX = original.width * leftP;
+  const cropY = original.height * topP;
+  const cropW = original.width * (1 - leftP - rightP);
+  const cropH = original.height * (1 - topP - bottomP);
+
+  const newW = Math.max(1, Math.round(cropW * (resizePercent / 100)));
+  const newH = Math.max(1, Math.round(cropH * (resizePercent / 100)));
+
+  // Teken eerst gecropt en geresized
+  canvas.width = newW;
+  canvas.height = newH;
+  ctx.clearRect(0, 0, newW, newH);
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, newW, newH);
+
+  // Compressie alleen bij download, maar preview is al representatief
+  canvas.dataset.quality = q;
 }
 
-function crop(){
-  const size=Math.min(img.width,img.height);
-  canvas.width=size;
-  canvas.height=size;
-  ctx.drawImage(img,(img.width-size)/2,(img.height-size)/2,size,size,0,0,size,size);
+function download() {
+  if (!canvas.width || !canvas.height) return;
+  const q = canvas.dataset.quality ? parseFloat(canvas.dataset.quality) : 0.8;
+  const data = canvas.toDataURL("image/jpeg", q);
+  const a = document.createElement("a");
+  a.href = data;
+  a.download = "image-edited.jpg";
+  a.click();
 }
 
-if(localStorage.getItem("theme")==="dark"){
+updateLabels();
+
+if (localStorage.getItem("theme") === "dark") {
   document.documentElement.classList.add("dark");
 }
 </script>
