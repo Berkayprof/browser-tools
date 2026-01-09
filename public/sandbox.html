@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandbox Code Runner</title>
+<style>
+:root {
+  --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+  --accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px;
+}
+:root.dark {
+  --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+  --accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",sans-serif;}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;
+  display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.box{
+  width:100%;max-width:1100px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border-radius:20px;box-shadow:0 8px 30px var(--shadow);padding:24px;
+}
+.header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;
+}
+h1{font-size:1.6rem;}
+button{
+  padding:8px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+  cursor:pointer;transition:.2s;font-size:.9rem;
+}
+button:hover{background:var(--accent-hover);transform:translateY(-1px);}
+.grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+textarea{
+  width:100%;height:260px;border-radius:12px;border:none;padding:10px;
+  font-family:Consolas,monospace;font-size:.9rem;resize:vertical;
+}
+iframe{
+  width:100%;height:260px;border-radius:12px;border:none;background:#fff;
+}
+label{font-size:.9rem;font-weight:600;margin-bottom:4px;display:block;}
+.theme-toggle{
+  position:fixed;top:20px;right:20px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-size:.9rem;
+  color:var(--text);box-shadow:0 4px 20px var(--shadow);z-index:1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+  <div class="header">
+    <h1>🧪 Sandbox Code Runner</h1>
+    <button id="runBtn">Run ▶</button>
+  </div>
+  <div class="grid">
+    <div>
+      <label for="code">HTML / CSS / JS</label>
+      <textarea id="code">
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { color: #4a8bff; }
+  </style>
+</head>
+<body>
+  <h1>Hello Sandbox!</h1>
+  <p>Pas de code links aan en klik op Run.</p>
+  <script>
+    console.log("Hello from sandbox!");
+  </script>
+</body>
+</html>
+      </textarea>
+    </div>
+    <div>
+      <label>Resultaat</label>
+      <iframe id="preview"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+  root.classList.toggle("dark");
+  localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const runBtn = document.getElementById("runBtn");
+const codeEl = document.getElementById("code");
+const iframe = document.getElementById("preview");
+
+function runCode() {
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open();
+  doc.write(codeEl.value);
+  doc.close();
+}
+runBtn.addEventListener("click", runCode);
+runCode();
+</script>
+
+</body>
+</html>
