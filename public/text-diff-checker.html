@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Diff Checker</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+
+    --added: #d4ffd4;
+    --removed: #ffd4d4;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+
+    --added: #1f3b1f;
+    --removed: #3b1f1f;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 1000px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+textarea {
+    width: 100%;
+    min-height: 180px;
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    resize: vertical;
+}
+button {
+    margin-top: 16px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.result {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    font-size: 1rem;
+    white-space: pre-wrap;
+}
+.added {
+    background: var(--added);
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+.removed {
+    background: var(--removed);
+    padding: 2px 4px;
+    border-radius: 4px;
+    text-decoration: line-through;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>📝 Text Diff Checker</h1>
+    <p class="desc">Vergelijk twee teksten en zie direct de verschillen.</p>
+
+    <div class="grid">
+        <div>
+            <label>Tekst A</label>
+            <textarea id="textA"></textarea>
+        </div>
+        <div>
+            <label>Tekst B</label>
+            <textarea id="textB"></textarea>
+        </div>
+    </div>
+
+    <button id="compareBtn">Vergelijk</button>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Simple diff algorithm
+function diffWords(a, b) {
+    const aWords = a.split(/\s+/);
+    const bWords = b.split(/\s+/);
+
+    const result = [];
+    let i = 0, j = 0;
+
+    while (i < aWords.length || j < bWords.length) {
+        if (aWords[i] === bWords[j]) {
+            result.push(aWords[i]);
+            i++; j++;
+        } else {
+            if (bWords[j] && !aWords.includes(bWords[j])) {
+                result.push(`<span class="added">${bWords[j]}</span>`);
+                j++;
+            } else if (aWords[i] && !bWords.includes(aWords[i])) {
+                result.push(`<span class="removed">${aWords[i]}</span>`);
+                i++;
+            } else {
+                result.push(`<span class="removed">${aWords[i] || ""}</span>`);
+                result.push(`<span class="added">${bWords[j] || ""}</span>`);
+                i++; j++;
+            }
+        }
+    }
+
+    return result.join(" ");
+}
+
+document.getElementById("compareBtn").addEventListener("click", () => {
+    const a = document.getElementById("textA").value.trim();
+    const b = document.getElementById("textB").value.trim();
+    const result = document.getElementById("result");
+
+    if (!a && !b) {
+        result.textContent = "Voer twee teksten in om te vergelijken.";
+        return;
+    }
+
+    result.innerHTML = diffWords(a, b);
+});
+</script>
+
+</body>
+</html>
