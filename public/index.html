@@ -6,26 +6,29 @@
 <title>Browser Tools</title>
 
 <style>
+    /* ---------- THEMA VARIABELEN ---------- */
     :root {
-        --bg: #f5f5f7;
-        --text: #111;
+        --bg: #f5f7fa;
+        --text: #1a1a1a;
         --card-bg: rgba(255, 255, 255, 0.55);
         --accent: #4a8bff;
         --accent-hover: #2f6ef0;
+        --banner-gradient: linear-gradient(135deg, #4a8bff, #6f4aff);
         --shadow: rgba(0, 0, 0, 0.15);
         --blur: 18px;
     }
 
-    /* DARK THEME */
     :root.dark {
         --bg: #0f1115;
         --text: #f1f1f1;
         --card-bg: rgba(30, 32, 38, 0.55);
         --accent: #6aa0ff;
         --accent-hover: #8bb4ff;
+        --banner-gradient: linear-gradient(135deg, #1f3b70, #3f1f70);
         --shadow: rgba(0, 0, 0, 0.6);
     }
 
+    /* ---------- BASIS ---------- */
     * {
         margin: 0;
         padding: 0;
@@ -41,22 +44,37 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 40px 20px;
     }
 
-    h1 {
-        font-size: 3rem;
-        margin-bottom: 25px;
-        font-weight: 700;
-        text-shadow: 0 4px 20px var(--shadow);
-        animation: fadeIn 0.7s ease forwards;
+    /* ---------- HERO BANNER ---------- */
+    .banner {
+        width: 100%;
+        padding: 80px 20px;
+        background: var(--banner-gradient);
+        color: white;
+        text-align: center;
+        box-shadow: 0 4px 20px var(--shadow);
+        animation: fadeIn 0.8s ease forwards;
     }
 
-    /* Glassmorphism container */
+    .banner h1 {
+        font-size: 3.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .banner p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    /* ---------- CONTAINER ---------- */
     .container {
         width: 100%;
-        max-width: 600px;
-        padding: 30px;
+        max-width: 900px;
+        margin-top: -40px;
+        padding: 40px;
         border-radius: 20px;
         background: var(--card-bg);
         backdrop-filter: blur(var(--blur));
@@ -64,26 +82,33 @@
         animation: slideUp 0.6s ease forwards;
     }
 
-    .tool-button {
-        display: block;
-        padding: 16px;
-        margin: 15px 0;
-        text-decoration: none;
-        color: white;
+    /* ---------- GRID VAN TOOLS ---------- */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .tool-card {
         background: var(--accent);
-        border-radius: 12px;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+        color: white;
         font-size: 1.2rem;
         font-weight: 600;
-        text-align: center;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         transition: transform 0.2s ease, background 0.2s ease;
     }
 
-    .tool-button:hover {
+    .tool-card:hover {
         background: var(--accent-hover);
-        transform: translateY(-3px);
+        transform: translateY(-5px);
     }
 
-    /* Theme toggle button */
+    /* ---------- THEMA KNOP ---------- */
     .theme-toggle {
         position: fixed;
         top: 20px;
@@ -104,7 +129,7 @@
         transform: scale(1.05);
     }
 
-    /* Animations */
+    /* ---------- ANIMATIES ---------- */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -121,33 +146,31 @@
 
 <button class="theme-toggle" id="themeToggle">🌗 Thema</button>
 
-<h1>Browser Tools</h1>
+<div class="banner">
+    <h1>Browser Tools</h1>
+    <p>Snelle, moderne en krachtige tools — direct in je browser.</p>
+</div>
 
 <div class="container">
-    <a class="tool-button" href="calc.html">Rekenmachine</a>
-    <a class="tool-button" href="color.html">Colorpicker</a>
-    <a class="tool-button" href="youtube.html">YouTube Unblocker</a>
-    <a class="tool-button" href="proxy.html">Proxy Searcher</a>
+    <div class="grid">
+        <a class="tool-card" href="calc.html">🧮 Rekenmachine</a>
+        <a class="tool-card" href="color.html">🎨 Colorpicker</a>
+        <a class="tool-card" href="youtube.html">📥 YouTube Downloader</a>
+        <a class="tool-card" href="proxy.html">🛡️ Proxy Searcher</a>
+    </div>
 </div>
 
 <script>
     const root = document.documentElement;
     const toggleBtn = document.getElementById("themeToggle");
 
-    // Load saved theme
     if (localStorage.getItem("theme") === "dark") {
         root.classList.add("dark");
     }
 
     toggleBtn.addEventListener("click", () => {
         root.classList.toggle("dark");
-
-        // Save preference
-        if (root.classList.contains("dark")) {
-            localStorage.setItem("theme", "dark");
-        } else {
-            localStorage.setItem("theme", "light");
-        }
+        localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
     });
 </script>
 
