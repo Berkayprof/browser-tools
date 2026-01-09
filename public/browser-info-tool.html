@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Info Tool</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.info-box {
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.info-box div {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🌐 Browser Info Tool</h1>
+    <p class="desc">Bekijk alle informatie die je browser beschikbaar stelt.</p>
+
+    <div class="info-box" id="infoBox">
+        <div><strong>Browser:</strong> <span id="browser"></span></div>
+        <div><strong>Besturingssysteem:</strong> <span id="os"></span></div>
+        <div><strong>User Agent:</strong> <span id="ua"></span></div>
+        <div><strong>CPU Cores:</strong> <span id="cores"></span></div>
+        <div><strong>RAM:</strong> <span id="ram"></span></div>
+        <div><strong>GPU:</strong> <span id="gpu"></span></div>
+        <div><strong>Cookies:</strong> <span id="cookies"></span></div>
+        <div><strong>LocalStorage:</strong> <span id="localStorage"></span></div>
+        <div><strong>SessionStorage:</strong> <span id="sessionStorage"></span></div>
+        <div><strong>Online Status:</strong> <span id="online"></span></div>
+        <div><strong>WebRTC:</strong> <span id="webrtc"></span></div>
+        <div><strong>WebGL:</strong> <span id="webgl"></span></div>
+        <div><strong>WebAudio:</strong> <span id="webaudio"></span></div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Elements
+const browser = document.getElementById("browser");
+const os = document.getElementById("os");
+const ua = document.getElementById("ua");
+const cores = document.getElementById("cores");
+const ram = document.getElementById("ram");
+const gpu = document.getElementById("gpu");
+const cookies = document.getElementById("cookies");
+const localStorageEl = document.getElementById("localStorage");
+const sessionStorageEl = document.getElementById("sessionStorage");
+const online = document.getElementById("online");
+const webrtc = document.getElementById("webrtc");
+const webgl = document.getElementById("webgl");
+const webaudio = document.getElementById("webaudio");
+
+// Browser detection
+function detectBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes("Chrome") && !ua.includes("Edg")) return "Google Chrome";
+    if (ua.includes("Edg")) return "Microsoft Edge";
+    if (ua.includes("Firefox")) return "Mozilla Firefox";
+    if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+    return "Onbekend";
+}
+
+// OS detection
+function detectOS() {
+    const ua = navigator.userAgent;
+    if (ua.includes("Win")) return "Windows";
+    if (ua.includes("Mac")) return "macOS";
+    if (ua.includes("Linux")) return "Linux";
+    if (/Android/i.test(ua)) return "Android";
+    if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+    return "Onbekend";
+}
+
+// GPU detection
+function detectGPU() {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (!gl) return "Niet beschikbaar";
+    const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    return debugInfo
+        ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        : "WebGL beschikbaar (maar geen details)";
+}
+
+// Fill data
+browser.textContent = detectBrowser();
+os.textContent = detectOS();
+ua.textContent = navigator.userAgent;
+cores.textContent = navigator.hardwareConcurrency || "Onbekend";
+ram.textContent = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Onbekend";
+gpu.textContent = detectGPU();
+cookies.textContent = navigator.cookieEnabled ? "Ja" : "Nee";
+localStorageEl.textContent = typeof localStorage !== "undefined" ? "Ja" : "Nee";
+sessionStorageEl.textContent = typeof sessionStorage !== "undefined" ? "Ja" : "Nee";
+online.textContent = navigator.onLine ? "Online" : "Offline";
+webrtc.textContent = typeof RTCPeerConnection !== "undefined" ? "Ja" : "Nee";
+webgl.textContent = detectGPU() !== "Niet beschikbaar" ? "Ja" : "Nee";
+webaudio.textContent = typeof AudioContext !== "undefined" ? "Ja" : "Nee";
+</script>
+
+</body>
+</html>
