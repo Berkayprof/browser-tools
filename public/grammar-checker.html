@@ -16,7 +16,7 @@ body {
   min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
 }
 .box {
-  max-width:700px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  max-width:800px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
   padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow);
 }
 textarea {
@@ -27,36 +27,60 @@ button {
   cursor:pointer; transition:.2s;
 }
 button:hover { background:var(--accent-hover); transform:translateY(-2px); }
-#output { margin-top:15px; font-size:1.1rem; }
+.issue {
+  margin-top:10px; padding:10px; background:#ffdddd; border-left:4px solid red; border-radius:6px;
+}
+.good {
+  margin-top:10px; padding:10px; background:#ddffdd; border-left:4px solid green; border-radius:6px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h1>📚 Grammar Checker</h1>
+  <h1>📚 Grammar Checker (LanguageTool)</h1>
   <textarea id="input" placeholder="Typ tekst..."></textarea>
-  <button onclick="check()">Check</button>
+  <button onclick="checkGrammar()">Check</button>
   <div id="output"></div>
 </div>
 
 <script>
-function check(){
-  const t=document.getElementById("input").value;
-  let issues=[];
+async function checkGrammar() {
+  const text = document.getElementById("input").value;
+  const output = document.getElementById("output");
+  output.innerHTML = "⏳ Controleren...";
 
-  if(/ {2,}/.test(t)) issues.push("Dubbele spaties gevonden");
-  if(/[A-Z]/.test(t[1])) issues.push("Mogelijk ontbrekende punt voor hoofdletter");
-  if(!/[.!?]$/.test(t.trim())) issues.push("Zin eindigt niet met een punt");
+  const res = await fetch("https://api.languagetool.org/v2/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      text: text,
+      language: "nl"
+    })
+  });
 
-  if(issues.length===0){
-    document.getElementById("output").textContent="✔ Geen problemen gevonden";
-  } else {
-    document.getElementById("output").innerHTML = "⚠ Problemen:<br>• " + issues.join("<br>• ");
+  const data = await res.json();
+  output.innerHTML = "";
+
+  if (data.matches.length === 0) {
+    output.innerHTML = `<div class="good">✔ Geen fouten gevonden</div>`;
+    return;
   }
+
+  data.matches.forEach(m => {
+    const msg = document.createElement("div");
+    msg.className = "issue";
+    msg.innerHTML = `
+      <strong>⚠ ${m.message}</strong><br>
+      <em>Fout:</em> ${text.substring(m.offset, m.offset + m.length)}<br>
+      <em>Suggestie(s):</em> ${m.replacements.map(r => r.value).join(", ")}
+    `;
+    output.appendChild(msg);
+  });
 }
 
-if(localStorage.getItem("theme")==="dark"){
+if (localStorage.getItem("theme")==="dark"){
   document.documentElement.classList.add("dark");
 }
 </script>
