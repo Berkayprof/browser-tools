@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Tools</title>
+
+<style>
+:root { --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px; }
+:root.dark { --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6); }
+
+body {
+  background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif;
+  min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+}
+.box {
+  max-width:700px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow);
+}
+button {
+  padding:10px 20px; border-radius:10px; border:none; background:var(--accent); color:#fff;
+  cursor:pointer; transition:.2s; margin:5px;
+}
+button:hover { background:var(--accent-hover); transform:translateY(-2px); }
+canvas { max-width:100%; margin-top:15px; border-radius:10px; }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>🖼️ Image Tools</h1>
+
+  <input type="file" id="file" accept="image/*"><br><br>
+
+  <button onclick="resize()">Resize</button>
+  <button onclick="compress()">Compress</button>
+  <button onclick="crop()">Crop (center)</button>
+
+  <canvas id="canvas"></canvas>
+</div>
+
+<script>
+let img=new Image();
+let canvas=document.getElementById("canvas");
+let ctx=canvas.getContext("2d");
+
+document.getElementById("file").onchange=e=>{
+  const file=e.target.files[0];
+  img.src=URL.createObjectURL(file);
+  img.onload=()=>draw(img);
+};
+
+function draw(image){
+  canvas.width=image.width;
+  canvas.height=image.height;
+  ctx.drawImage(image,0,0);
+}
+
+function resize(){
+  canvas.width=img.width/2;
+  canvas.height=img.height/2;
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+}
+
+function compress(){
+  const data=canvas.toDataURL("image/jpeg",0.5);
+  let c2=document.createElement("canvas");
+  let x2=c2.getContext("2d");
+  let temp=new Image();
+  temp.src=data;
+  temp.onload=()=>{
+    c2.width=temp.width;
+    c2.height=temp.height;
+    x2.drawImage(temp,0,0);
+    canvas.width=temp.width;
+    canvas.height=temp.height;
+    ctx.drawImage(temp,0,0);
+  };
+}
+
+function crop(){
+  const size=Math.min(img.width,img.height);
+  canvas.width=size;
+  canvas.height=size;
+  ctx.drawImage(img,(img.width-size)/2,(img.height-size)/2,size,size,0,0,size,size);
+}
+
+if(localStorage.getItem("theme")==="dark"){
+  document.documentElement.classList.add("dark");
+}
+</script>
+
+</body>
+</html>
