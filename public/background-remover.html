@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Background Remover</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+input[type="file"] {
+    margin: 10px 0;
+}
+button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.preview-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+}
+.preview-box {
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    text-align: center;
+}
+.preview-box img {
+    max-width: 100%;
+    border-radius: 12px;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🖼 Background Remover</h1>
+    <p class="desc">Verwijder automatisch de achtergrond van een afbeelding — volledig in je browser.</p>
+
+    <input type="file" id="upload" accept="image/*">
+    <button id="processBtn">Achtergrond verwijderen</button>
+    <button id="downloadBtn" disabled>Download resultaat</button>
+
+    <div class="preview-area">
+        <div class="preview-box">
+            <h3>Origineel</h3>
+            <img id="originalImg" src="">
+        </div>
+        <div class="preview-box">
+            <h3>Zonder achtergrond</h3>
+            <img id="resultImg" src="">
+        </div>
+    </div>
+</div>
+
+<!-- TensorFlow.js -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+
+<!-- U²-Net model (open-source remove.bg-lite) -->
+<script src="https://cdn.jsdelivr.net/npm/remove-bg-lite@1.0.3/dist/removebg.min.js"></script>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const upload = document.getElementById("upload");
+const originalImg = document.getElementById("originalImg");
+const resultImg = document.getElementById("resultImg");
+const processBtn = document.getElementById("processBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+
+let uploadedImage = null;
+
+upload.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        uploadedImage = reader.result;
+        originalImg.src = uploadedImage;
+    };
+    reader.readAsDataURL(file);
+});
+
+processBtn.addEventListener("click", async () => {
+    if (!uploadedImage) {
+        alert("Upload eerst een afbeelding.");
+        return;
+    }
+
+    processBtn.textContent = "Bezig...";
+    processBtn.disabled = true;
+
+    const output = await removeBackground(uploadedImage);
+    resultImg.src = output;
+
+    downloadBtn.disabled = false;
+    processBtn.textContent = "Achtergrond verwijderen";
+    processBtn.disabled = false;
+});
+
+downloadBtn.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.href = resultImg.src;
+    link.download = "zonder-achtergrond.png";
+    link.click();
+});
+</script>
+
+</body>
+</html>
