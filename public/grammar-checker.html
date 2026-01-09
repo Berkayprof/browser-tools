@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Checker</title>
+
+<style>
+:root { --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px; }
+:root.dark { --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6); }
+
+body {
+  background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif;
+  min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+}
+.box {
+  max-width:700px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow);
+}
+textarea {
+  width:100%; height:200px; border-radius:10px; border:none; padding:10px; margin-bottom:10px;
+}
+button {
+  padding:12px 20px; border-radius:10px; border:none; background:var(--accent); color:#fff;
+  cursor:pointer; transition:.2s;
+}
+button:hover { background:var(--accent-hover); transform:translateY(-2px); }
+#output { margin-top:15px; font-size:1.1rem; }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>📚 Grammar Checker</h1>
+  <textarea id="input" placeholder="Typ tekst..."></textarea>
+  <button onclick="check()">Check</button>
+  <div id="output"></div>
+</div>
+
+<script>
+function check(){
+  const t=document.getElementById("input").value;
+  let issues=[];
+
+  if(/ {2,}/.test(t)) issues.push("Dubbele spaties gevonden");
+  if(/[A-Z]/.test(t[1])) issues.push("Mogelijk ontbrekende punt voor hoofdletter");
+  if(!/[.!?]$/.test(t.trim())) issues.push("Zin eindigt niet met een punt");
+
+  if(issues.length===0){
+    document.getElementById("output").textContent="✔ Geen problemen gevonden";
+  } else {
+    document.getElementById("output").innerHTML = "⚠ Problemen:<br>• " + issues.join("<br>• ");
+  }
+}
+
+if(localStorage.getItem("theme")==="dark"){
+  document.documentElement.classList.add("dark");
+}
+</script>
+
+</body>
+</html>
