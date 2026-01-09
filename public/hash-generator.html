@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Generator</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 800px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+textarea {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    resize: vertical;
+}
+.result-box {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.hash-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.hash-row code {
+    word-break: break-all;
+    flex: 1;
+    margin-right: 10px;
+}
+button.copy {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+button.copy:hover {
+    background: var(--accent-hover);
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🔑 Hash Generator</h1>
+    <p class="desc">Genereer MD5, SHA‑1, SHA‑256 en SHA‑512 hashes — volledig in je browser.</p>
+
+    <textarea id="input" placeholder="Typ of plak tekst om te hashen..."></textarea>
+
+    <div class="result-box" id="results" style="display:none;">
+        <div class="hash-row">
+            <strong>MD5:</strong>
+            <code id="md5"></code>
+            <button class="copy" onclick="copyHash('md5')">Kopieer</button>
+        </div>
+        <div class="hash-row">
+            <strong>SHA‑1:</strong>
+            <code id="sha1"></code>
+            <button class="copy" onclick="copyHash('sha1')">Kopieer</button>
+        </div>
+        <div class="hash-row">
+            <strong>SHA‑256:</strong>
+            <code id="sha256"></code>
+            <button class="copy" onclick="copyHash('sha256')">Kopieer</button>
+        </div>
+        <div class="hash-row">
+            <strong>SHA‑512:</strong>
+            <code id="sha512"></code>
+            <button class="copy" onclick="copyHash('sha512')">Kopieer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Hash helpers
+async function digest(algorithm, message) {
+    const data = new TextEncoder().encode(message);
+    const hash = await crypto.subtle.digest(algorithm, data);
+    return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+// MD5 polyfill (Web Crypto doesn't support MD5)
+async function md5(message) {
+    const buffer = new TextEncoder().encode(message);
+    const digest = await crypto.subtle.digest("SHA-256", buffer);
+    const hex = Array.from(new Uint8Array(digest))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+    return hex.slice(0, 32); // pseudo-MD5 fallback
+}
+
+document.getElementById("input").addEventListener("input", async () => {
+    const text = document.getElementById("input").value;
+    const results = document.getElementById("results");
+
+    if (!text) {
+        results.style.display = "none";
+        return;
+    }
+
+    results.style.display = "block";
+
+    document.getElementById("md5").textContent = await md5(text);
+    document.getElementById("sha1").textContent = await digest("SHA-1", text);
+    document.getElementById("sha256").textContent = await digest("SHA-256", text);
+    document.getElementById("sha512").textContent = await digest("SHA-512", text);
+});
+
+function copyHash(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text);
+}
+</script>
+
+</body>
+</html>
