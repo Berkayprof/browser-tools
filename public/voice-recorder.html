@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Recorder</title>
+<style>
+:root {
+  --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+  --accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px;
+}
+:root.dark {
+  --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+  --accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",sans-serif;}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;
+  display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.box{
+  width:100%;max-width:500px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border-radius:20px;box-shadow:0 8px 30px var(--shadow);padding:24px;text-align:center;
+}
+h1{font-size:1.7rem;margin-bottom:8px;}
+p{font-size:.95rem;margin-bottom:12px;}
+button{
+  padding:10px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+  cursor:pointer;transition:.2s;font-size:.9rem;margin:0 4px;
+}
+button:hover{background:var(--accent-hover);transform:translateY(-1px);}
+button.secondary{
+  background:transparent;color:var(--text);border:1px solid rgba(0,0,0,0.1);
+}
+button.secondary:hover{
+  background:rgba(255,255,255,0.4);
+}
+.status{margin:10px 0;font-size:.95rem;}
+audio{margin-top:12px;width:100%;}
+.recordings{margin-top:16px;text-align:left;font-size:.9rem;max-height:200px;overflow:auto;}
+.recordings h3{margin-bottom:6px;font-size:.95rem;}
+.recordings ul{list-style:none;padding-left:0;}
+.recordings li{margin-bottom:8px;}
+.theme-toggle{
+  position:fixed;top:20px;right:20px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-size:.9rem;
+  color:var(--text);box-shadow:0 4px 20px var(--shadow);z-index:1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+  <h1>🎤 Voice Recorder</h1>
+  <p>Neem audio op in je browser en download het als bestand.</p>
+
+  <div class="status" id="status">Status: klaar om op te nemen</div>
+
+  <div class="buttons">
+    <button id="startBtn">Start opname</button>
+    <button id="stopBtn" class="secondary" disabled>Stop</button>
+  </div>
+
+  <div class="recordings">
+    <h3>Opnames</h3>
+    <ul id="recordingList"></ul>
+  </div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+  root.classList.toggle("dark");
+  localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const statusEl = document.getElementById("status");
+const recordingList = document.getElementById("recordingList");
+
+let mediaRecorder = null;
+let chunks = [];
+let recordingIndex = 0;
+
+async function initRecorder(){
+  if (mediaRecorder) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.onstart = () => {
+      chunks = [];
+      statusEl.textContent = "Status: opnemen...";
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      const url = URL.createObjectURL(blob);
+      recordingIndex++;
+
+      const li = document.createElement("li");
+      const audio = document.createElement("audio");
+      audio.controls = true;
+      audio.src = url;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `opname-${recordingIndex}.webm`;
+      link.textContent = "Download";
+
+      li.textContent = `Opname ${recordingIndex}: `;
+      li.appendChild(audio);
+      li.appendChild(document.createElement("br"));
+      li.appendChild(link);
+      recordingList.prepend(li);
+
+      statusEl.textContent = "Status: klaar om op te nemen";
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    };
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Microfoon niet beschikbaar of geweigerd.";
+    startBtn.disabled = true;
+    stopBtn.disabled = true;
+  }
+}
+
+startBtn.addEventListener("click", async () => {
+  await initRecorder();
+  if (mediaRecorder && mediaRecorder.state !== "recording") {
+    mediaRecorder.start();
+  }
+});
+
+stopBtn.addEventListener("click", () => {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+});
+</script>
+
+</body>
+</html>
