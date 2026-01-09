@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webcam Tester</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 800px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+select, button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+button {
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+}
+button:hover {
+    background: var(--accent-hover);
+}
+video {
+    width: 100%;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.info {
+    margin-top: 14px;
+    font-size: 1rem;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🎥 Webcam Tester</h1>
+    <p class="desc">Bekijk live webcam‑beeld, FPS en resolutie.</p>
+
+    <select id="deviceSelect"></select>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+
+    <video id="video" autoplay playsinline></video>
+
+    <div class="info">
+        <div><strong>Resolutie:</strong> <span id="resolution">—</span></div>
+        <div><strong>FPS:</strong> <span id="fps">—</span></div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Elements
+const deviceSelect = document.getElementById("deviceSelect");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const video = document.getElementById("video");
+const resolution = document.getElementById("resolution");
+const fpsEl = document.getElementById("fps");
+
+let stream = null;
+let lastTime = performance.now();
+let frames = 0;
+
+// Load camera devices
+async function loadDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === "videoinput");
+
+    deviceSelect.innerHTML = "";
+    cams.forEach(cam => {
+        const option = document.createElement("option");
+        option.value = cam.deviceId;
+        option.textContent = cam.label || "Camera";
+        deviceSelect.appendChild(option);
+    });
+}
+
+loadDevices();
+
+// Start webcam
+startBtn.addEventListener("click", async () => {
+    const deviceId = deviceSelect.value;
+
+    stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: deviceId ? { exact: deviceId } : undefined }
+    });
+
+    video.srcObject = stream;
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    measureFPS();
+    updateResolution();
+});
+
+// Stop webcam
+stopBtn.addEventListener("click", () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+
+    video.srcObject = null;
+    resolution.textContent = "—";
+    fpsEl.textContent = "—";
+});
+
+// FPS measurement
+function measureFPS() {
+    if (!stream) return;
+
+    requestAnimationFrame(measureFPS);
+
+    frames++;
+    const now = performance.now();
+
+    if (now - lastTime >= 1000) {
+        fpsEl.textContent = frames;
+        frames = 0;
+        lastTime = now;
+    }
+}
+
+// Resolution update
+function updateResolution() {
+    if (!video.videoWidth) {
+        requestAnimationFrame(updateResolution);
+        return;
+    }
+    resolution.textContent = `${video.videoWidth} × ${video.videoHeight}`;
+}
+</script>
+
+</body>
+</html>
