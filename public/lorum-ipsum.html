@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lorem Ipsum Generator</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 800px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px 22px 26px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+select, input[type="number"] {
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    background: rgba(255,255,255,0.9);
+}
+button {
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+textarea {
+    width: 100%;
+    min-height: 220px;
+    border-radius: 12px;
+    border: none;
+    padding: 10px;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+.small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 6px;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+@media (max-width: 600px) {
+    .controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>📄 Lorem Ipsum Generator</h1>
+    <p class="desc">Genereer snel dummy-tekst voor ontwerpen, mockups en prototypes.</p>
+
+    <div class="controls">
+        <div>
+            <label for="type">Type:</label>
+            <select id="type">
+                <option value="paragraphs">Paragrafen</option>
+                <option value="sentences">Zinnen</option>
+                <option value="words">Woorden</option>
+            </select>
+        </div>
+        <div>
+            <label for="amount">Aantal:</label>
+            <input type="number" id="amount" min="1" max="50" value="3">
+        </div>
+        <div>
+            <label for="flavor">Stijl:</label>
+            <select id="flavor">
+                <option value="classic">Klassiek Lorem Ipsum</option>
+                <option value="nl">Nederlands-achtig</option>
+                <option value="tech">Tech / dev</option>
+            </select>
+        </div>
+        <div>
+            <button id="generateBtn">Genereer</button>
+        </div>
+    </div>
+
+    <textarea id="output" readonly></textarea>
+    <div class="small">Tip: klik in het veld en gebruik Ctrl+A → Ctrl+C om alles te kopiëren.</div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const classicWords = `
+lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum
+`.trim().split(/\s+/);
+
+const nlWords = `
+lorem tekst voorbeeld zinnen maken ontwerp layout pagina titel paragraaf inhoud knop menu browser tools handig snel gratis simpel duidelijk structuur project website applicatie gebruiker scherm lettertype kleur stijl blok sectie component
+`.trim().split(/\s+/);
+
+const techWords = `
+frontend backend api request response json html css javascript framework library component state hook render deploy server client database query endpoint token auth devops pipeline git commit branch merge debug log console error function variable constant async await promise
+`.trim().split(/\s+/);
+
+function pickWords(source, count) {
+    const out = [];
+    for (let i = 0; i < count; i++) {
+        out.push(source[Math.floor(Math.random() * source.length)]);
+    }
+    return out;
+}
+
+function toSentences(words, sentenceCount) {
+    const sentences = [];
+    let idx = 0;
+    for (let i = 0; i < sentenceCount; i++) {
+        const len = 6 + Math.floor(Math.random() * 10); // 6–15 woorden
+        const slice = words.slice(idx, idx + len);
+        if (slice.length === 0) break;
+        idx += len;
+        let s = slice.join(" ");
+        s = s.charAt(0).toUpperCase() + s.slice(1) + ".";
+        sentences.push(s);
+    }
+    return sentences;
+}
+
+function toParagraphs(sentences, paragraphCount) {
+    const paragraphs = [];
+    let idx = 0;
+    for (let i = 0; i < paragraphCount; i++) {
+        const len = 3 + Math.floor(Math.random() * 3); // 3–5 zinnen
+        const slice = sentences.slice(idx, idx + len);
+        if (slice.length === 0) break;
+        idx += len;
+        paragraphs.push(slice.join(" "));
+    }
+    return paragraphs;
+}
+
+document.getElementById("generateBtn").addEventListener("click", () => {
+    const type = document.getElementById("type").value;
+    const amount = Math.max(1, Math.min(50, parseInt(document.getElementById("amount").value, 10) || 1));
+    const flavor = document.getElementById("flavor").value;
+    const output = document.getElementById("output");
+
+    let source;
+    if (flavor === "classic") source = classicWords;
+    else if (flavor === "nl") source = nlWords;
+    else source = techWords;
+
+    if (type === "words") {
+        const words = pickWords(source, amount);
+        let text = words.join(" ");
+        text = text.charAt(0).toUpperCase() + text.slice(1) + ".";
+        output.value = text;
+    } else if (type === "sentences") {
+        const words = pickWords(source, amount * 10);
+        const sentences = toSentences(words, amount);
+        output.value = sentences.join(" ");
+    } else {
+        const words = pickWords(source, amount * 40);
+        const sentences = toSentences(words, amount * 5);
+        const paragraphs = toParagraphs(sentences, amount);
+        output.value = paragraphs.join("\n\n");
+    }
+});
+
+// eerste keer genereren
+document.getElementById("generateBtn").click();
+</script>
+
+</body>
+</html>
