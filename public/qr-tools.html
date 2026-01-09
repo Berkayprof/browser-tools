@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Generator & Scanner</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 1000px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px 22px 26px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+.card {
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 14px 14px 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+input[type="text"], textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: none;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+button {
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+button.secondary:hover {
+    background: rgba(255,255,255,0.5);
+}
+.qr-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+    margin-top: 8px;
+}
+#qrcode canvas {
+    border-radius: 8px;
+}
+.small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 6px;
+}
+#scanner {
+    width: 100%;
+    max-width: 320px;
+    margin: 8px auto 0;
+}
+.scan-result {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+@media (max-width: 700px) {
+    .box { padding: 18px 16px 20px; }
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🔳 QR Generator & Scanner</h1>
+    <p class="desc">Maak QR-codes van tekst of URL’s en scan ze direct met je camera.</p>
+
+    <div class="grid">
+        <!-- Generator -->
+        <div class="card">
+            <h2>QR Generator</h2>
+            <label for="qrText">Tekst of URL</label>
+            <textarea id="qrText" rows="4" placeholder="https://voorbeeld.nl of andere tekst"></textarea>
+            <button id="generateBtn">Genereer QR</button>
+            <button id="downloadBtn" class="secondary" disabled>Download PNG</button>
+            <div class="qr-preview">
+                <div id="qrcode"></div>
+            </div>
+            <div class="small">Tip: gebruik korte, duidelijke URL’s voor de beste scanbaarheid.</div>
+        </div>
+
+        <!-- Scanner -->
+        <div class="card">
+            <h2>QR Scanner</h2>
+            <p class="small">Je browser vraagt om cameratoegang. Werkt het best op mobiel.</p>
+            <div id="scanner"></div>
+            <div class="scan-result">
+                <strong>Resultaat:</strong>
+                <div id="scanResult">Nog niets gescand.</div>
+            </div>
+            <button id="startScanBtn" class="secondary">Start scanner</button>
+            <button id="stopScanBtn" class="secondary" disabled>Stop scanner</button>
+        </div>
+    </div>
+</div>
+
+<!-- QRCode.js (generator) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- html5-qrcode (scanner) -->
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// QR GENERATOR
+let qr;
+const qrContainer = document.getElementById("qrcode");
+const qrTextEl = document.getElementById("qrText");
+const generateBtn = document.getElementById("generateBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+
+function generateQR() {
+    const text = qrTextEl.value.trim() || "https://browser-tools.local/";
+    qrContainer.innerHTML = "";
+    qr = new QRCode(qrContainer, {
+        text,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    setTimeout(() => {
+        const canvas = qrContainer.querySelector("canvas");
+        downloadBtn.disabled = !canvas;
+    }, 200);
+}
+
+generateBtn.addEventListener("click", generateQR);
+
+downloadBtn.addEventListener("click", () => {
+    const canvas = qrContainer.querySelector("canvas");
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "qr-code.png";
+    link.click();
+});
+
+// eerste QR
+generateQR();
+
+// QR SCANNER
+let html5QrCode = null;
+const scannerDivId = "scanner";
+const scanResultEl = document.getElementById("scanResult");
+const startScanBtn = document.getElementById("startScanBtn");
+const stopScanBtn = document.getElementById("stopScanBtn");
+
+async function startScanner() {
+    if (html5QrCode) return;
+    html5QrCode = new Html5Qrcode(scannerDivId);
+    scanResultEl.textContent = "Scanner gestart, richt op een QR-code...";
+    startScanBtn.disabled = true;
+    stopScanBtn.disabled = false;
+
+    try {
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 220 },
+            decodedText => {
+                scanResultEl.textContent = decodedText;
+            },
+            errorMessage => {
+                // fouten bij scannen negeren
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        scanResultEl.textContent = "Kon camera niet starten of toegang geweigerd.";
+        startScanBtn.disabled = false;
+        stopScanBtn.disabled = true;
+        html5QrCode = null;
+    }
+}
+
+async function stopScanner() {
+    if (!html5QrCode) return;
+    try {
+        await html5QrCode.stop();
+        await html5QrCode.clear();
+    } catch (e) {
+        console.error(e);
+    }
+    html5QrCode = null;
+    scanResultEl.textContent = "Scanner gestopt.";
+    startScanBtn.disabled = false;
+    stopScanBtn.disabled = true;
+}
+
+startScanBtn.addEventListener("click", startScanner);
+stopScanBtn.addEventListener("click", stopScanner);
+</script>
+
+</body>
+</html>
