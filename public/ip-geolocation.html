@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Geolocation Lookup</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 700px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+}
+button {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.result-box {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.result-box div {
+    margin-bottom: 6px;
+    font-size: 1rem;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🌍 IP Geolocation Lookup</h1>
+    <p class="desc">Zoek locatie‑informatie op van elk IP‑adres.</p>
+
+    <div class="controls">
+        <input type="text" id="ipInput" placeholder="Bijv. 8.8.8.8">
+        <button id="lookupBtn">Zoek</button>
+    </div>
+
+    <div class="result-box" id="resultBox" style="display:none;">
+        <div><strong>IP:</strong> <span id="ip"></span></div>
+        <div><strong>Land:</strong> <span id="country"></span></div>
+        <div><strong>Regio:</strong> <span id="region"></span></div>
+        <div><strong>Stad:</strong> <span id="city"></span></div>
+        <div><strong>ISP:</strong> <span id="isp"></span></div>
+        <div><strong>ASN:</strong> <span id="asn"></span></div>
+        <div><strong>Tijdzone:</strong> <span id="timezone"></span></div>
+        <div><strong>Coördinaten:</strong> <span id="coords"></span></div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+// Elements
+const ipInput = document.getElementById("ipInput");
+const resultBox = document.getElementById("resultBox");
+
+const fields = {
+    ip: document.getElementById("ip"),
+    country: document.getElementById("country"),
+    region: document.getElementById("region"),
+    city: document.getElementById("city"),
+    isp: document.getElementById("isp"),
+    asn: document.getElementById("asn"),
+    timezone: document.getElementById("timezone"),
+    coords: document.getElementById("coords")
+};
+
+document.getElementById("lookupBtn").addEventListener("click", async () => {
+    const ip = ipInput.value.trim();
+    if (!ip) {
+        alert("Voer een IP-adres in.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://ipapi.co/${ip}/json/`);
+        const data = await res.json();
+
+        fields.ip.textContent = data.ip || "—";
+        fields.country.textContent = `${data.country_name || "—"} (${data.country || ""})`;
+        fields.region.textContent = data.region || "—";
+        fields.city.textContent = data.city || "—";
+        fields.isp.textContent = data.org || "—";
+        fields.asn.textContent = data.asn || "—";
+        fields.timezone.textContent = data.timezone || "—";
+        fields.coords.textContent = data.latitude && data.longitude 
+            ? `${data.latitude}, ${data.longitude}` 
+            : "—";
+
+        resultBox.style.display = "block";
+
+    } catch (err) {
+        alert("Kon gegevens niet ophalen.");
+    }
+});
+</script>
+
+</body>
+</html>
