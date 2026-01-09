@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groepsmaker</title>
+<style>
+:root {
+  --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+  --accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px;
+}
+:root.dark {
+  --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+  --accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",sans-serif;}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;
+  display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.box{
+  width:100%;max-width:800px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border-radius:20px;box-shadow:0 8px 30px var(--shadow);padding:24px;
+}
+h1{font-size:1.7rem;margin-bottom:8px;}
+p{font-size:.95rem;margin-bottom:12px;}
+textarea{
+  width:100%;height:140px;border-radius:12px;border:none;padding:10px;margin-bottom:10px;
+}
+input[type="number"]{
+  width:80px;border-radius:10px;border:none;padding:6px 8px;margin-left:6px;
+}
+button{
+  padding:10px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+  cursor:pointer;transition:.2s;font-size:.9rem;margin-top:6px;
+}
+button:hover{background:var(--accent-hover);transform:translateY(-1px);}
+.groups{
+  margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;
+}
+.group{
+  background:rgba(255,255,255,0.8);border-radius:12px;padding:10px 12px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);font-size:.9rem;
+}
+.group h3{font-size:.95rem;margin-bottom:6px;}
+.group ul{list-style:none;padding-left:0;}
+.group li{margin-bottom:2px;}
+.theme-toggle{
+  position:fixed;top:20px;right:20px;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-size:.9rem;
+  color:var(--text);box-shadow:0 4px 20px var(--shadow);z-index:1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+  <h1>🧑‍🤝‍🧑 Groepsmaker</h1>
+  <p>Voer namen in (één per regel) en kies hoeveel groepen je wilt.</p>
+
+  <textarea id="names" placeholder="Naam 1&#10;Naam 2&#10;Naam 3&#10;..."></textarea>
+
+  <label for="groupCount">Aantal groepen:</label>
+  <input type="number" id="groupCount" min="2" value="3">
+
+  <br>
+  <button id="makeGroups">Maak groepen</button>
+
+  <div class="groups" id="groups"></div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+  root.classList.toggle("dark");
+  localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+document.getElementById("makeGroups").addEventListener("click", () => {
+  const raw = document.getElementById("names").value
+    .split("\n").map(n=>n.trim()).filter(Boolean);
+  const groupCount = parseInt(document.getElementById("groupCount").value,10);
+  const container = document.getElementById("groups");
+  container.innerHTML = "";
+
+  if (raw.length === 0 || !groupCount || groupCount < 2) {
+    container.textContent = "Voer namen in en een geldig aantal groepen.";
+    return;
+  }
+
+  const names = shuffle([...raw]);
+  const groups = Array.from({length: groupCount}, () => []);
+
+  names.forEach((name, i) => {
+    groups[i % groupCount].push(name);
+  });
+
+  groups.forEach((g, idx) => {
+    const div = document.createElement("div");
+    div.className = "group";
+    const title = document.createElement("h3");
+    title.textContent = `Groep ${idx+1}`;
+    const ul = document.createElement("ul");
+    g.forEach(n => {
+      const li = document.createElement("li");
+      li.textContent = n;
+      ul.appendChild(li);
+    });
+    div.appendChild(title);
+    div.appendChild(ul);
+    container.appendChild(div);
+  });
+});
+</script>
+
+</body>
+</html>
