@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microphone Tester</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 800px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+select, button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+button {
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+}
+button:hover {
+    background: var(--accent-hover);
+}
+canvas {
+    width: 100%;
+    height: 200px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.volume-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+.volume-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.05s linear;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🎤 Microphone Tester</h1>
+    <p class="desc">Bekijk live audio‑input, waveform en volume‑niveau.</p>
+
+    <select id="deviceSelect"></select>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+
+    <canvas id="waveform"></canvas>
+
+    <div class="volume-bar">
+        <div class="volume-fill" id="volumeFill"></div>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const deviceSelect = document.getElementById("deviceSelect");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const canvas = document.getElementById("waveform");
+const ctx = canvas.getContext("2d");
+const volumeFill = document.getElementById("volumeFill");
+
+let audioStream = null;
+let audioContext = null;
+let analyser = null;
+let dataArray = null;
+let animationId = null;
+
+// Load microphone devices
+async function loadDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === "audioinput");
+
+    deviceSelect.innerHTML = "";
+    mics.forEach(mic => {
+        const option = document.createElement("option");
+        option.value = mic.deviceId;
+        option.textContent = mic.label || "Microfoon";
+        deviceSelect.appendChild(option);
+    });
+}
+
+loadDevices();
+
+// Start microphone
+startBtn.addEventListener("click", async () => {
+    const deviceId = deviceSelect.value;
+
+    audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: { deviceId: deviceId ? { exact: deviceId } : undefined }
+    });
+
+    audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(audioStream);
+
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    source.connect(analyser);
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    draw();
+});
+
+// Stop microphone
+stopBtn.addEventListener("click", () => {
+    if (audioStream) {
+        audioStream.getTracks().forEach(t => t.stop());
+    }
+    if (animationId) cancelAnimationFrame(animationId);
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    volumeFill.style.width = "0%";
+});
+
+// Draw waveform + volume
+function draw() {
+    animationId = requestAnimationFrame(draw);
+
+    analyser.getByteTimeDomainData(dataArray);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#4a8bff";
+    ctx.beginPath();
+
+    const slice = canvas.width / dataArray.length;
+    let x = 0;
+
+    let sum = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvas.height / 2;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+
+        x += slice;
+
+        sum += Math.abs(dataArray[i] - 128);
+    }
+
+    ctx.stroke();
+
+    const volume = Math.min(100, (sum / dataArray.length) * 1.5);
+    volumeFill.style.width = volume + "%";
+}
+</script>
+
+</body>
+</html>
