@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit Converter</title>
+<style>
+:root{--bg:#f5f7fa;--text:#1a1a1a;--card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff;--accent-hover:#2f6ef0;--shadow:rgba(0,0,0,.15);--blur:18px;}
+:root.dark{--bg:#0f1115;--text:#f1f1f1;--card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff;--accent-hover:#8bb4ff;--shadow:rgba(0,0,0,.6);}
+body{
+  background:var(--bg);color:var(--text);font-family:"Segoe UI",sans-serif;
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.box{
+  max-width:500px;width:100%;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  padding:30px;border-radius:20px;box-shadow:0 8px 30px var(--shadow);
+}
+input,select{
+  width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:10px;font-size:1rem;
+}
+button{
+  width:100%;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+  cursor:pointer;transition:.2s;margin-top:5px;
+}
+button:hover{background:var(--accent-hover);transform:translateY(-2px);}
+.result{margin-top:10px;font-weight:600;}
+p {
+	margin: 3px
+}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>📏 Unit Converter</h1>
+  <input type="number" id="value" placeholder="Waarde">
+  <select id="type">
+    <option value="length">Lengte (m, km, cm)</option>
+    <option value="weight">Gewicht (kg, g)</option>
+    <option value="temp">Temperatuur (°C, °F)</option>
+  </select>
+  <p>van:</p><select id="from"></select>
+  <p>naar:</p><select id="to"></select>
+  <button onclick="convert()">Converteer</button>
+  <div class="result" id="result"></div>
+</div>
+<script>
+const units={
+  length:["m","km","cm"],
+  weight:["kg","g"],
+  temp:["C","F"]
+};
+const typeSel=document.getElementById("type");
+const fromSel=document.getElementById("from");
+const toSel=document.getElementById("to");
+function populate(){
+  const t=typeSel.value;
+  fromSel.innerHTML="";toSel.innerHTML="";
+  units[t].forEach(u=>{
+    const o1=document.createElement("option");o1.value=u;o1.textContent=u;
+    const o2=document.createElement("option");o2.value=u;o2.textContent=u;
+    fromSel.appendChild(o1);toSel.appendChild(o2);
+  });
+  toSel.selectedIndex=1;
+}
+typeSel.onchange=populate;populate();
+function convert(){
+  const val=parseFloat(document.getElementById("value").value);
+  if(isNaN(val))return;
+  const t=typeSel.value,f=fromSel.value,to=toSel.value;
+  let res=val;
+  if(t==="length"){
+    let m=val;
+    if(f==="km")m=val*1000;
+    if(f==="cm")m=val/100;
+    if(to==="km")res=m/1000;
+    else if(to==="cm")res=m*100;
+    else res=m;
+  }else if(t==="weight"){
+    let kg=val;
+    if(f==="g")kg=val/1000;
+    if(to==="g")res=kg*1000;else res=kg;
+  }else if(t==="temp"){
+    if(f==="C"&&to==="F")res=val*9/5+32;
+    else if(f==="F"&&to==="C")res=(val-32)*5/9;
+    else res=val;
+  }
+  document.getElementById("result").textContent=`Resultaat: ${res}`;
+}
+if(localStorage.getItem("theme")==="dark"){document.documentElement.classList.add("dark");}
+</script>
+</body>
+</html>
