@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Base Converter</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 700px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+.converter {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🔢 Number Base Converter</h1>
+    <p class="desc">Converteer getallen tussen binair, octaal, decimaal en hexadecimaal.</p>
+
+    <div class="converter">
+        <div>
+            <label>Decimaal (base 10)</label>
+            <input type="text" id="dec" placeholder="42">
+        </div>
+        <div>
+            <label>Binair (base 2)</label>
+            <input type="text" id="bin" placeholder="101010">
+        </div>
+        <div>
+            <label>Octaal (base 8)</label>
+            <input type="text" id="oct" placeholder="52">
+        </div>
+        <div>
+            <label>Hexadecimaal (base 16)</label>
+            <input type="text" id="hex" placeholder="2A">
+        </div>
+    </div>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+const dec = document.getElementById("dec");
+const bin = document.getElementById("bin");
+const oct = document.getElementById("oct");
+const hex = document.getElementById("hex");
+
+function updateFromDec() {
+    const value = parseInt(dec.value, 10);
+    if (isNaN(value)) return;
+    bin.value = value.toString(2);
+    oct.value = value.toString(8);
+    hex.value = value.toString(16).toUpperCase();
+}
+
+function updateFromBin() {
+    const value = parseInt(bin.value, 2);
+    if (isNaN(value)) return;
+    dec.value = value;
+    oct.value = value.toString(8);
+    hex.value = value.toString(16).toUpperCase();
+}
+
+function updateFromOct() {
+    const value = parseInt(oct.value, 8);
+    if (isNaN(value)) return;
+    dec.value = value;
+    bin.value = value.toString(2);
+    hex.value = value.toString(16).toUpperCase();
+}
+
+function updateFromHex() {
+    const value = parseInt(hex.value, 16);
+    if (isNaN(value)) return;
+    dec.value = value;
+    bin.value = value.toString(2);
+    oct.value = value.toString(8);
+}
+
+dec.addEventListener("input", updateFromDec);
+bin.addEventListener("input", updateFromBin);
+oct.addEventListener("input", updateFromOct);
+hex.addEventListener("input", updateFromHex);
+</script>
+
+</body>
+</html>
