@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Converter Pro</title>
+
+<style>
+:root {
+    --bg: #f5f7fa;
+    --text: #1a1a1a;
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --accent: #4a8bff;
+    --accent-hover: #2f6ef0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --blur: 18px;
+}
+:root.dark {
+    --bg: #0f1115;
+    --text: #f1f1f1;
+    --card-bg: rgba(30, 32, 38, 0.55);
+    --accent: #6aa0ff;
+    --accent-hover: #8bb4ff;
+    --shadow: rgba(0, 0, 0, 0.6);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.box {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 24px;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+p.desc {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+textarea {
+    width: 100%;
+    min-height: 160px;
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    resize: vertical;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+button {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--blur));
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 1000;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+
+<div class="box">
+    <h1>🔡 Case Converter Pro</h1>
+    <p class="desc">Zet tekst om naar elke denkbare schrijfwijze.</p>
+
+    <textarea id="input" placeholder="Typ of plak hier je tekst..."></textarea>
+
+    <div class="grid">
+        <button onclick="convert('upper')">UPPERCASE</button>
+        <button onclick="convert('lower')">lowercase</button>
+        <button onclick="convert('title')">Title Case</button>
+        <button onclick="convert('sentence')">Sentence case</button>
+        <button onclick="convert('camel')">camelCase</button>
+        <button onclick="convert('pascal')">PascalCase</button>
+        <button onclick="convert('snake')">snake_case</button>
+        <button onclick="convert('kebab')">kebab-case</button>
+        <button onclick="convert('constant')">CONSTANT_CASE</button>
+    </div>
+
+    <textarea id="output" placeholder="Resultaat verschijnt hier..." style="margin-top:16px;"></textarea>
+</div>
+
+<script>
+const root = document.documentElement;
+const toggleBtn = document.getElementById("themeToggle");
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+toggleBtn.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
+
+function toWords(str) {
+    return str
+        .replace(/[_\-]/g, " ")
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .toLowerCase()
+        .trim()
+        .split(/\s+/);
+}
+
+function convert(type) {
+    const input = document.getElementById("input").value;
+    const output = document.getElementById("output");
+
+    const words = toWords(input);
+
+    let result = "";
+
+    switch (type) {
+        case "upper":
+            result = input.toUpperCase();
+            break;
+        case "lower":
+            result = input.toLowerCase();
+            break;
+        case "title":
+            result = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            break;
+        case "sentence":
+            result = input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+            break;
+        case "camel":
+            result = words.map((w,i)=> i===0 ? w : w.charAt(0).toUpperCase()+w.slice(1)).join("");
+            break;
+        case "pascal":
+            result = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+            break;
+        case "snake":
+            result = words.join("_");
+            break;
+        case "kebab":
+            result = words.join("-");
+            break;
+        case "constant":
+            result = words.join("_").toUpperCase();
+            break;
+    }
+
+    output.value = result;
+}
+</script>
+
+</body>
+</html>
