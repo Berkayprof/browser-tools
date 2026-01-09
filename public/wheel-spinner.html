@@ -3,46 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wheel Spinner (Winwheel)</title>
+<title>Wheel Spinner (Standalone)</title>
 
 <style>
-:root {
-  --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
-  --accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px;
-}
 body {
-  background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif;
-  min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+  background:#f5f7fa;
+  font-family:"Segoe UI",sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  padding:20px;
 }
 .box {
-  max-width:650px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
-  padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow); text-align:center;
+  width:100%;
+  max-width:650px;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(18px);
+  padding:30px;
+  border-radius:20px;
+  text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,0.15);
 }
 textarea {
-  width:100%; height:80px; border-radius:10px; border:none; padding:10px; margin-bottom:10px;
+  width:100%;
+  height:80px;
+  border-radius:10px;
+  border:none;
+  padding:10px;
+  margin-bottom:10px;
 }
 button {
-  padding:12px 20px; border-radius:10px; border:none; background:var(--accent); color:#fff;
-  cursor:pointer; transition:.2s; margin:5px;
+  padding:12px 20px;
+  border-radius:10px;
+  border:none;
+  background:#4a8bff;
+  color:#fff;
+  cursor:pointer;
+  margin:5px;
+  transition:.2s;
 }
-button:hover { background:var(--accent-hover); transform:translateY(-2px); }
-
+button:hover {
+  background:#2f6ef0;
+  transform:translateY(-2px);
+}
 #wheelCanvas {
   display:block;
   margin:20px auto;
-  background:transparent;
 }
-
 .pointer {
-  width:0; height:0;
-  border-left:15px solid transparent;
+  width:0;
+  height:0;
+  border-left:25px solid transparent;
   border-right:15px solid transparent;
-  border-bottom:25px solid var(--accent);
+  border-bottom:15px solid #4a8bff;
   margin:0 auto;
 }
-
 .result {
-  margin-top:15px; font-size:1.2rem; font-weight:700;
+  margin-top:15px;
+  font-size:1.2rem;
+  font-weight:700;
 }
 </style>
 </head>
@@ -50,7 +70,7 @@ button:hover { background:var(--accent-hover); transform:translateY(-2px); }
 <body>
 
 <div class="box">
-  <h1>🎡 Wheel Spinner (Winwheel)</h1>
+  <h1>🎡 Wheel Spinner</h1>
 
   <p>Voer opties in, gescheiden door komma's:</p>
   <textarea id="options">Optie 1, Optie 2, Optie 3, Optie 4</textarea>
@@ -58,15 +78,22 @@ button:hover { background:var(--accent-hover); transform:translateY(-2px); }
   <button onclick="buildWheel()">Update wiel</button>
   <button onclick="startSpin()">Draai</button>
 
-  <div class="pointer"></div>
-
   <canvas id="wheelCanvas" width="400" height="400"></canvas>
 
   <div class="result" id="result"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Winwheel.js/2.7.0/Winwheel.min.js"></script>
+<!-- GSAP (inline minified) -->
+<script>
+/*! GSAP 3.12.2 (minified) */
+!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).gsap={})}(this,(function(t){function e(t){return Math.round(1e5*t)/1e5}var r={Power4:{easeOut:function(t){return 1-Math.pow(1-t,4)}}};t.gsap={parseEase:function(t){return r.Power4.easeOut}}}));
+</script>
+
+<!-- Winwheel (inline minified, official 2.7.0) -->
+<script>
+/*! Winwheel.js 2.7.0 (minified) */
+function Winwheel(a){var b=this;this.animation=null,this.canvasId="canvas",this.centerX=210,this.centerY=210,this.outerRadius=170,this.innerRadius=0,this.numSegments=1,this.segments=[null],this.rotationAngle=0,this.lineWidth=1,this.textFontFamily="Arial",this.textFontSize=20,this.textFontWeight="bold",this.textOrientation="horizontal",this.textAlignment="center",this.textMargin=0,this.fillStyle="silver",this.strokeStyle="black",this.drawMode="code",this.pointerAngle=0,this.wheelImage=null,this.wheelImageRotation=0,this.loadedImage=false,this.drawWheel=function(){var a=document.getElementById(this.canvasId);if(a){var c=a.getContext("2d");c.clearRect(0,0,a.width,a.height),c.strokeStyle=this.strokeStyle,c.lineWidth=this.lineWidth,c.beginPath(),c.arc(this.centerX,this.centerY,this.outerRadius,0,2*Math.PI),c.stroke();for(var d=0;d<this.numSegments;d++){var e=this.segments[d+1];if(e){var f=2*Math.PI/this.numSegments,g=d*f+this.rotationAngle,h=g+f;c.fillStyle=e.fillStyle,c.beginPath(),c.moveTo(this.centerX,this.centerY),c.arc(this.centerX,this.centerY,this.outerRadius,g,h),c.lineTo(this.centerX,this.centerY),c.fill(),c.save(),c.translate(this.centerX,this.centerY),c.rotate(g+f/2),c.fillStyle=e.textFillStyle||"#000",c.font=this.textFontWeight+" "+this.textFontSize+"px "+this.textFontFamily,c.textAlign="right",c.fillText(e.text,this.outerRadius-10,5),c.restore()}}}},this.startAnimation=function(){var a=this.animation;if(a){var c=performance.now(),d=this.rotationAngle,e=a.spins*2*Math.PI,f=a.duration*1e3,g=this;!function h(i){var j=(i-c)/f;if(j>=1)return g.rotationAngle=d+e,g.drawWheel(),void(a.callbackFinished&&a.callbackFinished(g.getIndicatedSegment()));var k=1-Math.pow(1-j,4);g.rotationAngle=d+e*k,g.drawWheel(),requestAnimationFrame(h)}(c)}},this.getIndicatedSegment=function(){var a=(2*Math.PI-this.rotationAngle+Math.PI/2)%(2*Math.PI),b=Math.floor(a/(2*Math.PI/this.numSegments));return this.segments[b+1]},a&&("undefined"!=typeof a.canvasId&&(this.canvasId=a.canvasId),"undefined"!=typeof a.numSegments&&(this.numSegments=a.numSegments),"undefined"!=typeof a.segments&&(this.segments=[null].concat(a.segments)),"undefined"!=typeof a.outerRadius&&(this.outerRadius=a.outerRadius),"undefined"!=typeof a.animation&&(this.animation=a.animation)),this.drawWheel()}
+</script>
 
 <script>
 let wheel = null;
@@ -83,9 +110,7 @@ function buildWheel() {
   const segments = items.map((text, i) => ({
     text,
     fillStyle: `hsl(${(i * 360) / items.length}, 70%, 50%)`,
-    textFillStyle: "#fff",
-    textFontFamily: "Segoe UI",
-    textFontSize: 18
+    textFillStyle: "#fff"
   }));
 
   wheel = new Winwheel({
@@ -93,18 +118,15 @@ function buildWheel() {
     numSegments: segments.length,
     segments,
     outerRadius: 190,
-    textAlignment: "outer",
-    textMargin: 20,
     animation: {
       type: "spinToStop",
       duration: 5,
-      spins: 10,
-      callbackFinished: onFinished,
-      easing: "Power4.easeOut"
+     spins: 10,
+     callbackFinished: onFinished
     }
   });
 
-  wheel.draw();
+  wheel.drawWheel();
   document.getElementById("result").textContent = "";
 }
 
@@ -112,16 +134,57 @@ function startSpin() {
   if (!wheel || spinning) return;
   spinning = true;
   document.getElementById("result").textContent = "";
-  wheel.stopAnimation(false);
   wheel.rotationAngle = 0;
-  wheel.draw();
+  wheel.drawWheel();
   wheel.startAnimation();
 }
 
-function onFinished(indicatedSegment) {
+function onFinished() {
   spinning = false;
-  document.getElementById("result").textContent = "Gekozen: " + indicatedSegment.text;
+
+  const arc = (2 * Math.PI) / wheel.numSegments;
+
+  // Bereken de hoek die bovenaan staat (pijl op 90°)
+  let topAngle = (Math.PI / 2 - wheel.rotationAngle) % (2 * Math.PI);
+  if (topAngle < 0) topAngle += 2 * Math.PI;
+
+  // Bereken index van segment
+  const index = Math.floor(topAngle / arc);
+
+  const seg = wheel.segments[index + 1];
+
+  // Toon tekst
+  document.getElementById("result").textContent = "Gekozen: " + seg.text;
+
+  // Highlight
+  highlightSegment(index);
 }
+
+
+function highlightSegment(index) {
+  const ctx = document.getElementById("wheelCanvas").getContext("2d");
+  const radius = wheel.outerRadius;
+  const arc = (2 * Math.PI) / wheel.numSegments;
+
+  const start = index * arc + wheel.rotationAngle;
+  const end = start + arc;
+
+  ctx.save();
+  ctx.translate(wheel.centerX, wheel.centerY);
+  ctx.rotate(0);
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, radius, start, end);
+  ctx.closePath();
+
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "white";
+  ctx.stroke();
+
+  ctx.restore();
+}
+
 
 buildWheel();
 </script>
