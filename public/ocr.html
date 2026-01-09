@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Tool</title>
+
+<style>
+:root { --bg:#f5f7fa; --text:#1a1a1a; --card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff; --accent-hover:#2f6ef0; --shadow:rgba(0,0,0,.15); --blur:18px; }
+:root.dark { --bg:#0f1115; --text:#f1f1f1; --card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff; --accent-hover:#8bb4ff; --shadow:rgba(0,0,0,.6); }
+
+body {
+  background:var(--bg); color:var(--text); font-family:"Segoe UI",sans-serif;
+  min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+}
+.box {
+  max-width:600px; width:100%; background:var(--card-bg); backdrop-filter:blur(var(--blur));
+  padding:30px; border-radius:20px; box-shadow:0 8px 30px var(--shadow); text-align:center;
+}
+textarea {
+  width:100%; height:150px; border-radius:10px; border:none; padding:10px; margin-top:15px;
+}
+button {
+  padding:12px 20px; border-radius:10px; border:none; background:var(--accent); color:#fff;
+  cursor:pointer; transition:.2s; margin-top:10px;
+}
+button:hover { background:var(--accent-hover); transform:translateY(-2px); }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>📷 OCR Tool</h1>
+  <input type="file" id="file" accept="image/*"><br>
+  <button onclick="runOCR()">Herken tekst</button>
+  <textarea id="output" placeholder="Herkenning verschijnt hier..."></textarea>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+<script>
+async function runOCR(){
+  const file=document.getElementById("file").files[0];
+  if(!file) return alert("Kies een afbeelding");
+
+  const { data:{ text } } = await Tesseract.recognize(file, "eng+nl", {
+    logger: m => console.log(m)
+  });
+
+  document.getElementById("output").value = text;
+}
+
+if(localStorage.getItem("theme")==="dark"){
+  document.documentElement.classList.add("dark");
+}
+</script>
+
+</body>
+</html>
