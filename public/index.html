@@ -4,24 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Browser Tools</title>
-
 <style>
     :root {
-        --bg: #e0e0e0;
+        --bg: #e6e9ef; /* licht pastel blauwgrijs */
         --text: #1a1a1a;
-        --accent: #4a8bff;
-        --accent-hover: #2f6ef0;
+
+        /* Accentkleuren */
+        --accent: #6a8dff;        /* zacht blauw */
+        --accent2: #ff8ac2;       /* pastel roze */
+        --accent3: #7ed957;       /* pastel groen */
+        --accent-hover: #4f6dff;
 
         /* Neumorphism shadows */
-        --shadow-light: rgba(255, 255, 255, 0.8);
-        --shadow-dark: rgba(0, 0, 0, 0.15);
+        --shadow-light: rgba(255, 255, 255, 0.9);
+        --shadow-dark: rgba(0, 0, 0, 0.18);
     }
 
     :root.dark {
-        --bg: #1e1e1e;
+        --bg: #1f1f24;
         --text: #f1f1f1;
-        --accent: #6aa0ff;
-        --accent-hover: #8bb4ff;
+
+        --accent: #7aa2ff;
+        --accent2: #ff7ab8;
+        --accent3: #8be96c;
+        --accent-hover: #9bb8ff;
 
         --shadow-light: rgba(255, 255, 255, 0.06);
         --shadow-dark: rgba(0, 0, 0, 0.6);
@@ -49,10 +55,12 @@
         width: 100%;
         padding: 80px 20px;
         text-align: center;
-        background: var(--bg);
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        border-radius: 0 0 40px 40px;
         box-shadow:
-            inset 8px 8px 16px var(--shadow-dark),
-            inset -8px -8px 16px var(--shadow-light);
+            inset 8px 8px 16px rgba(0,0,0,0.15),
+            inset -8px -8px 16px rgba(255,255,255,0.2);
     }
 
     .banner h1 {
@@ -63,7 +71,7 @@
 
     .banner p {
         font-size: 1.2rem;
-        opacity: 0.8;
+        opacity: 0.9;
     }
 
     /* Container */
@@ -107,7 +115,14 @@
         box-shadow:
             8px 8px 16px var(--shadow-dark),
             -8px -8px 16px var(--shadow-light);
+
+        /* subtiele kleuraccenten */
+        border-left: 0px solid var(--accent);
     }
+
+    .tool-card:nth-child(3n+1) { border-left-color: var(--accent); }
+    .tool-card:nth-child(3n+2) { border-left-color: var(--accent2); }
+    .tool-card:nth-child(3n+3) { border-left-color: var(--accent3); }
 
     .tool-card span {
         display: block;
@@ -121,6 +136,7 @@
         box-shadow:
             inset 6px 6px 12px var(--shadow-dark),
             inset -6px -6px 12px var(--shadow-light);
+        transform: translateY(-3px);
     }
 
     /* Theme toggle */
@@ -147,9 +163,7 @@
             inset -4px -4px 8px var(--shadow-light);
     }
 </style>
-
 </head>
-
 <body>
 
 <button class="theme-toggle" id="themeToggle">🌗 Thema</button>
