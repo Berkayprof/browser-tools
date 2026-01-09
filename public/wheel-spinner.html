@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel Spinner</title>
+<style>
+:root{--bg:#f5f7fa;--text:#1a1a1a;--card-bg:rgba(255,255,255,.55);
+--accent:#4a8bff;--shadow:rgba(0,0,0,.15);--blur:18px;}
+:root.dark{--bg:#0f1115;--text:#f1f1f1;--card-bg:rgba(30,32,38,.55);
+--accent:#6aa0ff;--shadow:rgba(0,0,0,.6);}
+body{
+  background:var(--bg);color:var(--text);font-family:"Segoe UI",sans-serif;
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.box{
+  max-width:600px;width:100%;background:var(--card-bg);backdrop-filter:blur(var(--blur));
+  padding:30px;border-radius:20px;box-shadow:0 8px 30px var(--shadow);text-align:center;
+}
+textarea{width:100%;height:80px;border-radius:10px;border:none;padding:10px;margin-bottom:10px;}
+button{
+  padding:10px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+  cursor:pointer;transition:.2s;margin-bottom:10px;
+}
+button:hover{transform:translateY(-2px);}
+#wheel{
+  margin:20px auto;width:250px;height:250px;border-radius:50%;border:6px solid var(--accent);
+  position:relative;overflow:hidden;transition:transform 4s cubic-bezier(.2,.8,.2,1);
+}
+.segment{
+  position:absolute;width:50%;height:50%;top:50%;left:50%;transform-origin:0% 0%;
+  display:flex;justify-content:center;align-items:center;font-size:.8rem;color:#fff;
+}
+.pointer{
+  width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;
+  border-bottom:20px solid var(--accent);margin:0 auto;
+}
+.result{margin-top:10px;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>🎡 Wheel Spinner</h1>
+  <p>Voer opties in, gescheiden door komma's:</p>
+  <textarea id="options">Optie 1, Optie 2, Optie 3</textarea><br>
+  <button onclick="buildWheel()">Update wiel</button>
+  <button onclick="spin()">Draai</button>
+  <div class="pointer"></div>
+  <div id="wheel"></div>
+  <div class="result" id="result"></div>
+</div>
+<script>
+let currentRotation=0, items=[];
+function buildWheel(){
+  const wheel=document.getElementById("wheel");
+  wheel.innerHTML="";
+  const raw=document.getElementById("options").value.split(",").map(s=>s.trim()).filter(Boolean);
+  items=raw;
+  const count=items.length;
+  items.forEach((text,i)=>{
+    const seg=document.createElement("div");
+    seg.className="segment";
+    const angle=360/count*i;
+    seg.style.transform=`rotate(${angle}deg) skewY(${90-360/count}deg)`;
+    seg.style.background=`hsl(${(i*360/count)},70%,50%)`;
+    seg.textContent=text;
+    wheel.appendChild(seg);
+  });
+}
+function spin(){
+  if(!items.length)buildWheel();
+  const wheel=document.getElementById("wheel");
+  const extra=360*5+Math.floor(Math.random()*360);
+  currentRotation=(currentRotation+extra)%360;
+  wheel.style.transform=`rotate(${currentRotation}deg)`;
+  setTimeout(()=>{
+    const index=Math.floor(((360-currentRotation)+90)%360/(360/items.length));
+    document.getElementById("result").textContent="Gekozen: "+items[index];
+  },4000);
+}
+buildWheel();
+if(localStorage.getItem("theme")==="dark"){document.documentElement.classList.add("dark");}
+</script>
+</body>
+</html>
