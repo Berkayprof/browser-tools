@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CSS Minifier & Beautifier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { font-family: system-ui, sans-serif; background:#e6e9ef; margin:0; padding:20px; }
+    .wrapper { max-width: 1000px; margin: 0 auto; }
+    h1 { margin-bottom: 10px; }
+    .row { margin-bottom: 16px; }
+    label { font-weight: 600; display:block; margin-bottom:6px; }
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #e6e9ef;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.15),
+                    -4px -4px 8px rgba(255,255,255,0.9);
+        outline: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9rem;
+        min-height: 160px;
+        resize: vertical;
+    }
+    .buttons { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .btn {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: #6a8dff;
+        color: white;
+        font-weight: 600;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.25),
+                    -4px -4px 8px rgba(255,255,255,0.7);
+    }
+    .btn.secondary { background: #7ed957; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <h1>CSS Minifier & Beautifier</h1>
+    <p>Minimaliseer of formatteer je CSS-code.</p>
+
+    <div class="row">
+        <label for="inputCss">CSS invoer</label>
+        <textarea id="inputCss" placeholder="Plak hier je CSS..."></textarea>
+    </div>
+
+    <div class="buttons">
+        <button class="btn" id="minifyBtn">Minify</button>
+        <button class="btn secondary" id="beautifyBtn">Beautify</button>
+    </div>
+
+    <div class="row">
+        <label for="outputCss">Resultaat</label>
+        <textarea id="outputCss" placeholder="Hier verschijnt het resultaat..."></textarea>
+    </div>
+</div>
+
+<script>
+    const inputCss = document.getElementById("inputCss");
+    const outputCss = document.getElementById("outputCss");
+    const minifyBtnCss = document.getElementById("minifyBtn");
+    const beautifyBtnCss = document.getElementById("beautifyBtn");
+
+    function minifyCss(css) {
+        return css
+            .replace(/\/\*[\s\S]*?\*\//g, "") // comments
+            .replace(/\s+/g, " ")             // whitespace
+            .replace(/\s*([{}:;,])\s*/g, "$1")
+            .replace(/;}/g, "}")
+            .trim();
+    }
+
+    function beautifyCss(css) {
+        css = minifyCss(css);
+        let result = "";
+        let indent = 0;
+        const indentStr = "  ";
+
+        for (let i = 0; i < css.length; i++) {
+            const char = css[i];
+            if (char === "{") {
+                result += " {\n";
+                indent++;
+                result += indentStr.repeat(indent);
+            } else if (char === "}") {
+                result += "\n";
+                indent = Math.max(indent - 1, 0);
+                result += indentStr.repeat(indent) + "}\n";
+                if (i + 1 < css.length && css[i + 1] !== "}") {
+                    result += indentStr.repeat(indent);
+                }
+            } else if (char === ";") {
+                result += ";\n" + indentStr.repeat(indent);
+            } else {
+                result += char;
+            }
+        }
+
+        return result.trim();
+    }
+
+    minifyBtnCss.addEventListener("click", () => {
+        outputCss.value = minifyCss(inputCss.value);
+    });
+
+    beautifyBtnCss.addEventListener("click", () => {
+        outputCss.value = beautifyCss(inputCss.value);
+    });
+</script>
+</body>
+</html>
