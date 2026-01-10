@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>JS Minifier & Beautifier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { font-family: system-ui, sans-serif; background:#e6e9ef; margin:0; padding:20px; }
+    .wrapper { max-width: 1000px; margin: 0 auto; }
+    h1 { margin-bottom: 10px; }
+    .row { margin-bottom: 16px; }
+    label { font-weight: 600; display:block; margin-bottom:6px; }
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #e6e9ef;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.15),
+                    -4px -4px 8px rgba(255,255,255,0.9);
+        outline: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9rem;
+        min-height: 160px;
+        resize: vertical;
+    }
+    .buttons { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .btn {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: #6a8dff;
+        color: white;
+        font-weight: 600;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.25),
+                    -4px -4px 8px rgba(255,255,255,0.7);
+    }
+    .btn.secondary { background: #7ed957; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <h1>JS Minifier & Beautifier</h1>
+    <p>Eenvoudige minify & beautify voor JavaScript (niet zo agressief als echte bundlers).</p>
+
+    <div class="row">
+        <label for="inputJs">JavaScript invoer</label>
+        <textarea id="inputJs" placeholder="Plak hier je JS..."></textarea>
+    </div>
+
+    <div class="buttons">
+        <button class="btn" id="minifyBtn">Minify</button>
+        <button class="btn secondary" id="beautifyBtn">Beautify</button>
+    </div>
+
+    <div class="row">
+        <label for="outputJs">Resultaat</label>
+        <textarea id="outputJs" placeholder="Hier verschijnt het resultaat..."></textarea>
+    </div>
+</div>
+
+<script>
+    const inputJs = document.getElementById("inputJs");
+    const outputJs = document.getElementById("outputJs");
+    const minifyBtnJs = document.getElementById("minifyBtn");
+    const beautifyBtnJs = document.getElementById("beautifyBtn");
+
+    function minifyJs(js) {
+        // Heel basic: verwijder comments en overbodige whitespace
+        return js
+            .replace(/\/\/[^\n]*\n/g, "\n")        // // comments
+            .replace(/\/\*[\s\S]*?\*\//g, "")      // /* */ comments
+            .replace(/\s+/g, " ")                  // collapse whitespace
+            .replace(/\s*([{}();,:=+\-*/<>])\s*/g, "$1")
+            .trim();
+    }
+
+    function beautifyJs(js) {
+        js = minifyJs(js);
+        let result = "";
+        let indent = 0;
+        const indentStr = "  ";
+
+        for (let i = 0; i < js.length; i++) {
+            const char = js[i];
+            if (char === "{") {
+                result += " {\n";
+                indent++;
+                result += indentStr.repeat(indent);
+            } else if (char === "}") {
+                result += "\n";
+                indent = Math.max(indent - 1, 0);
+                result += indentStr.repeat(indent) + "}\n";
+                if (i + 1 < js.length && js[i + 1] !== ";") {
+                    result += indentStr.repeat(indent);
+                }
+            } else if (char === ";") {
+                result += ";\n" + indentStr.repeat(indent);
+            } else {
+                result += char;
+            }
+        }
+
+        return result.trim();
+    }
+
+    minifyBtnJs.addEventListener("click", () => {
+        outputJs.value = minifyJs(inputJs.value);
+    });
+
+    beautifyBtnJs.addEventListener("click", () => {
+        outputJs.value = beautifyJs(inputJs.value);
+    });
+</script>
+</body>
+</html>
