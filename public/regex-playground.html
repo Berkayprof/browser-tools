@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Regex Playground</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #e6e9ef;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 20px;
+    }
+    .wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    h1 {
+        margin-bottom: 10px;
+    }
+    .row {
+        margin-bottom: 18px;
+    }
+    label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 6px;
+    }
+    input[type="text"], textarea, select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.15),
+                    -4px -4px 8px rgba(255,255,255,0.9);
+        background: #e6e9ef;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+    textarea {
+        min-height: 130px;
+        resize: vertical;
+    }
+    .flags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 6px;
+    }
+    .flag-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.9rem;
+    }
+    .btn {
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        background: #6a8dff;
+        color: white;
+        font-weight: 600;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.25),
+                    -4px -4px 8px rgba(255,255,255,0.7);
+    }
+    .btn:active {
+        box-shadow: inset 4px 4px 8px rgba(0,0,0,0.25),
+                    inset -4px -4px 8px rgba(255,255,255,0.7);
+    }
+    .output {
+        margin-top: 14px;
+        padding: 10px;
+        border-radius: 10px;
+        background: #e6e9ef;
+        box-shadow: inset 4px 4px 8px rgba(0,0,0,0.15),
+                    inset -4px -4px 8px rgba(255,255,255,0.9);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    mark {
+        background: #ffeb3b;
+        padding: 1px 0;
+    }
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <h1>Regex Playground</h1>
+    <p>Test je reguliere expressies live op tekst, inclusief flags en matches.</p>
+
+    <div class="row">
+        <label for="pattern">Regex patroon</label>
+        <input id="pattern" type="text" placeholder="Bijv. \\b\\w+\\b">
+    </div>
+
+    <div class="row">
+        <label>Flags</label>
+        <div class="flags">
+            <label class="flag-item"><input type="checkbox" value="g" checked> g (global)</label>
+            <label class="flag-item"><input type="checkbox" value="i"> i (ignore case)</label>
+            <label class="flag-item"><input type="checkbox" value="m"> m (multiline)</label>
+            <label class="flag-item"><input type="checkbox" value="s"> s (dotAll)</label>
+            <label class="flag-item"><input type="checkbox" value="u"> u (unicode)</label>
+            <label class="flag-item"><input type="checkbox" value="y"> y (sticky)</label>
+        </div>
+    </div>
+
+    <div class="row">
+        <label for="text">Testtekst</label>
+        <textarea id="text" placeholder="Plak hier je tekst om te testen..."></textarea>
+    </div>
+
+    <button class="btn" id="runBtn">Run regex</button>
+
+    <div class="row">
+        <h3>Matches</h3>
+        <div id="matches" class="output">Nog geen resultaten.</div>
+    </div>
+
+    <div class="row">
+        <h3>Tekst met highlights</h3>
+        <div id="highlighted" class="output"></div>
+    </div>
+</div>
+
+<script>
+    const patternInput = document.getElementById("pattern");
+    const textInput = document.getElementById("text");
+    const runBtn = document.getElementById("runBtn");
+    const matchesDiv = document.getElementById("matches");
+    const highlightedDiv = document.getElementById("highlighted");
+
+    function getFlags() {
+        const checkboxes = document.querySelectorAll(".flags input[type='checkbox']");
+        let flags = "";
+        checkboxes.forEach(cb => {
+            if (cb.checked) flags += cb.value;
+        });
+        return flags;
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    runBtn.addEventListener("click", () => {
+        const pattern = patternInput.value;
+        const text = textInput.value;
+        const flags = getFlags();
+
+        if (!pattern) {
+            matchesDiv.textContent = "Geen patroon ingevuld.";
+            highlightedDiv.textContent = escapeHtml(text);
+            return;
+        }
+
+        let regex;
+        try {
+            regex = new RegExp(pattern, flags || undefined);
+        } catch (e) {
+            matchesDiv.textContent = "Ongeldige regex: " + e.message;
+            highlightedDiv.textContent = escapeHtml(text);
+            return;
+        }
+
+        // Verzamel matches
+        let match;
+        let allMatches = [];
+        if (flags.includes("g")) {
+            while ((match = regex.exec(text)) !== null) {
+                allMatches.push({
+                    match: match[0],
+                    index: match.index,
+                    groups: match.slice(1)
+                });
+                if (match[0] === "") {
+                    regex.lastIndex++;
+                }
+            }
+        } else {
+            match = text.match(regex);
+            if (match) {
+                allMatches.push({
+                    match: match[0],
+                    index: match.index || 0,
+                    groups: match.slice(1)
+                });
+            }
+        }
+
+        if (allMatches.length === 0) {
+            matchesDiv.textContent = "Geen matches gevonden.";
+        } else {
+            matchesDiv.textContent = allMatches.map((m, i) => {
+                let groupStr = "";
+                if (m.groups && m.groups.length > 0) {
+                    groupStr = "\n  Groups: " + JSON.stringify(m.groups);
+                }
+                return `${i + 1}. "${m.match}" @ index ${m.index}${groupStr}`;
+            }).join("\n");
+        }
+
+        // Highlight tekst
+        if (allMatches.length === 0) {
+            highlightedDiv.textContent = escapeHtml(text);
+            return;
+        }
+
+        let resultHtml = "";
+        let lastIndex = 0;
+        allMatches.forEach(m => {
+            resultHtml += escapeHtml(text.slice(lastIndex, m.index));
+            resultHtml += "<mark>" + escapeHtml(m.match) + "</mark>";
+            lastIndex = m.index + m.match.length;
+        });
+        resultHtml += escapeHtml(text.slice(lastIndex));
+        highlightedDiv.innerHTML = resultHtml;
+    });
+</script>
+</body>
+</html>
