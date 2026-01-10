@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -55,12 +56,13 @@
         width: 100%;
         padding: 80px 20px;
         text-align: center;
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        background: linear-gradient(90deg, hsla(64, 41%, 92%, 1) 0%, hsla(196, 83%, 84%, 1) 50%, hsla(305, 75%, 83%, 1) 100%);
         color: white;
         border-radius: 0 0 40px 40px;
         box-shadow:
             inset 8px 8px 16px rgba(0,0,0,0.15),
             inset -8px -8px 16px rgba(255,255,255,0.2);
+        animation: gradientMove 7s ease-in-out infinite;
     }
 
     .banner h1 {
@@ -86,6 +88,22 @@
             12px 12px 24px var(--shadow-dark),
             -12px -12px 24px var(--shadow-light);
     }
+
+	/* Subtiele gradient beweging */
+@keyframes gradientMove {
+    0% {
+        background-size: 200% 200%;
+        background-position: 0% 50%;
+    }
+    50% {
+        background-size: 200% 200%;
+        background-position: 100% 50%;
+    }
+    100% {
+        background-size: 200% 200%;
+        background-position: 0% 50%;
+    }
+}
 
     .section-title {
         font-size: 1.4rem;
@@ -279,6 +297,7 @@
     const root = document.documentElement;
     const toggleBtn = document.getElementById("themeToggle");
 
+    // Dark mode behouden
     if (localStorage.getItem("theme") === "dark") {
         root.classList.add("dark");
     }
@@ -287,7 +306,23 @@
         root.classList.toggle("dark");
         localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
     });
+
+    // 🎨 Random banner gradients
+    const gradients = [
+        "linear-gradient(90deg, hsla(64, 41%, 92%, 1) 0%, hsla(196, 83%, 84%, 1) 50%, hsla(305, 75%, 83%, 1) 100%)",
+        "linear-gradient(125deg, hsla(154, 100%, 76%, 1) 0%, hsla(66, 64%, 74%, 1) 45%, hsla(347, 71%, 89%, 1) 100%)",
+        "linear-gradient(135deg, var(--accent), var(--accent2))",
+        "linear-gradient(115deg, hsla(176, 70%, 70%, 1) 0%, hsla(150, 90%, 84%, 1) 50%, hsla(301, 68%, 84%, 1) 100%)",
+        "linear-gradient(270deg, hsla(283, 47%, 78%, 1) 0%, hsla(104, 25%, 82%, 1) 100%)"
+    ];
+
+    // Kies willekeurige gradient
+    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+
+    // Pas toe op de banner
+    document.querySelector(".banner").style.background = randomGradient;
 </script>
+
 
 </body>
 </html>
