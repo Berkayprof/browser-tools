@@ -1,15 +1,16 @@
 {
-  "name": "browser-tools-proxy",
+  "name": "browser-tools",
   "version": "1.0.0",
-  "description": "Proxy + zoekmachine voor Browser Tools",
+  "description": "Browser Tools",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "colorjoe": "^4.2.0",
-    "http-proxy-middleware": "^2.0.6"
+    "http-proxy-middleware": "^2.0.6",
+    "colorjoe": "^4.2.0"
   },
   "engines": {
     "node": ">=18.x"
