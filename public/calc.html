@@ -1,163 +1,284 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geavanceerde Rekenmachine</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scientific Calculator</title>
+
+<style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #dfe3e8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
     }
-    .calculator {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      width: 350px;
+
+    .calc {
+        background: #2c2f33;
+        padding: 16px;
+        border-radius: 18px;
+        width: 400px;
+        max-width: 95vw;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        color: #fff;
     }
+
     .screen {
-      width: 95%;
-      height: 50px;
-      border: none;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      background-color: #f0f0f0;
-      text-align: right;
-      font-size: 1.5em;
-      padding: 5px 10px;
+        width: 100%;
+        height: 52px;
+        background: #c7e8c2;
+        color: #000;
+        font-size: 1.4rem;
+        border-radius: 8px;
+        border: none;
+        padding: 8px;
+        text-align: right;
+        margin-bottom: 10px;
+        font-family: "Consolas", monospace;
     }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+
+    .row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        margin-bottom: 6px;
     }
-    .buttons button {
-      padding: 15px;
-      font-size: 1em;
-      border: none;
-      border-radius: 5px;
-      background-color: #4caf50;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s;
+
+    button {
+        padding: 10px;
+        font-size: 0.9rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #3b3f45;
+        color: white;
+        transition: 0.15s;
     }
-    .buttons button:hover {
-      background-color: #45a049;
+
+    button:active {
+        transform: scale(0.96);
     }
-    .buttons .clear {
-      background-color: #f44336;
+
+    .op { background: #4a6cff; }
+    .fn { background: #ff8a3d; }
+    .spec { background: #ff4d4d; }
+    .num { background: #5a5f66; }
+
+    @media (max-height: 600px) {
+        .calc {
+            transform: scale(1);
+        }
     }
-    .buttons .clear:hover {
-      background-color: #d32f2f;
-    }
-    .buttons .operation {
-      background-color: #2196f3;
-    }
-    .buttons .operation:hover {
-      background-color: #1976d2;
-    }
-    .buttons .backspace {
-      background-color: #ffa726;
-    }
-    .buttons .backspace:hover {
-      background-color: #fb8c00;
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="calculator">
+<div class="calc">
     <input type="text" id="screen" class="screen" disabled>
-    <div class="buttons">
-      <button onclick="appendValue('7')">7</button>
-      <button onclick="appendValue('8')">8</button>
-      <button onclick="appendValue('9')">9</button>
-      <button class="operation" onclick="appendValue('/')">÷</button>
-      <button onclick="appendValue('4')">4</button>
-      <button onclick="appendValue('5')">5</button>
-      <button onclick="appendValue('6')">6</button>
-      <button class="operation" onclick="appendValue('*')">×</button>
-      <button onclick="appendValue('1')">1</button>
-      <button onclick="appendValue('2')">2</button>
-      <button onclick="appendValue('3')">3</button>
-      <button class="operation" onclick="appendValue('-')">−</button>
-      <button onclick="appendValue('0')">0</button>
-      <button onclick="appendValue('.')">.</button>
-      <button class="operation" onclick="appendValue('+')">+</button>
-      <button onclick="calculate()">=</button>
-      <button class="operation" onclick="square()">x²</button>
-      <button class="operation" onclick="sqrt()">√</button>
-      <button class="operation" onclick="percentage()">%</button>
-      <button class="backspace" onclick="backspace()">←</button>
-      <button class="clear" onclick="clearScreen()">C</button>
+
+    <!-- FUNCTION ROW -->
+    <div class="row">
+        <button class="fn" onclick="insert('sin(')">sin</button>
+        <button class="fn" onclick="insert('cos(')">cos</button>
+        <button class="fn" onclick="insert('tan(')">tan</button>
+        <button class="fn" onclick="insert('log(')">log</button>
+        <button class="fn" onclick="insert('ln(')">ln</button>
     </div>
-  </div>
-  <script>
-    const screen = document.getElementById('screen');
 
-    function appendValue(value) {
-      screen.value += value;
+    <!-- POWER / ROOT ROW -->
+    <div class="row">
+        <button class="fn" onclick="insert('^')">xʸ</button>
+        <button class="fn" onclick="square()">x²</button>
+        <button class="fn" onclick="sqrt()">√</button>
+        <button class="fn" onclick="cuberoot()">³√</button>
+        <button class="fn" onclick="insert('1/(')">1/x</button>
+    </div>
+    
+    <!-- FRACTION / PERCENT / MODE -->
+    <div class="row">
+        <button class="fn" onclick="insertFraction()">½</button>
+        <button class="fn" onclick="percentage()">%</button>
+        <button class="fn" onclick="toggleFractionMode()">F↔D</button>
+        <button class="fn" onclick="insert('(')">(</button>
+        <button class="fn" onclick="insert(')')">)</button>
+    </div>
+
+    <!-- ANS / EXTRA -->
+    <div class="row">
+        <button class="fn" onclick="insert('Ans')">Ans</button>
+        <button class="fn" onclick="insert(',')">,</button>
+        <button class="spec" onclick="backspace()">←</button>
+        <button class="spec" onclick="clearScreen()">C</button>
+        <button class="fn" onclick="insert('pi')">π</button>
+    </div>
+
+    <!-- NUMBERS + OPERATORS -->
+    <div class="row">
+        <button class="num" onclick="insert('7')">7</button>
+        <button class="num" onclick="insert('8')">8</button>
+        <button class="num" onclick="insert('9')">9</button>
+        <button class="op" onclick="insert('/')">÷</button>
+        <button class="fn" onclick="toggleDegRad(this)">DEG</button>
+    </div>
+
+    <div class="row">
+        <button class="num" onclick="insert('4')">4</button>
+        <button class="num" onclick="insert('5')">5</button>
+        <button class="num" onclick="insert('6')">6</button>
+        <button class="op" onclick="insert('*')">×</button>
+        <button class="op" onclick="calculate()">=</button>
+    </div>
+
+    <div class="row">
+        <button class="num" onclick="insert('1')">1</button>
+        <button class="num" onclick="insert('2')">2</button>
+        <button class="num" onclick="insert('3')">3</button>
+        <button class="op" onclick="insert('-')">−</button>
+        <button class="num" onclick="insert('0')">0</button>
+    </div>
+
+    <div class="row">
+        <button class="num" onclick="insert('.')">.</button>
+        <button class="op" onclick="insert('+')">+</button>
+        <!-- lege cellen om layout netjes te houden -->
+        <button disabled style="opacity:0; cursor:default;"></button>
+        <button disabled style="opacity:0; cursor:default;"></button>
+        <button disabled style="opacity:0; cursor:default;"></button>
+    </div>
+</div>
+
+<script>
+let degMode = true;
+let lastAnswer = 0;
+let fractionMode = false;
+const screen = document.getElementById("screen");
+
+function insert(v) {
+    screen.value += v;
+}
+
+function clearScreen() {
+    screen.value = "";
+}
+
+function backspace() {
+    screen.value = screen.value.slice(0, -1);
+}
+
+function square() {
+    try { screen.value = Math.pow(eval(screen.value), 2); }
+    catch { screen.value = "Error"; }
+}
+
+function sqrt() {
+    try { screen.value = Math.sqrt(eval(screen.value)); }
+    catch { screen.value = "Error"; }
+}
+
+function cuberoot() {
+    try { screen.value = Math.cbrt(eval(screen.value)); }
+    catch { screen.value = "Error"; }
+}
+
+function toggleDegRad(btn) {
+    degMode = !degMode;
+    btn.textContent = degMode ? "DEG" : "RAD";
+}
+
+function calculate() {
+    try {
+        let expr = screen.value;
+
+        // Ans vervangen
+        expr = expr.replace(/Ans/g, lastAnswer);
+
+        // Breuken detecteren
+        const fractionMatch = parseFraction(expr);
+        if (fractionMatch !== null) {
+            lastAnswer = fractionMatch;
+            screen.value = fractionMode ? toFraction(fractionMatch) : fractionMatch;
+            return;
+        }
+
+        // π, sin, cos, tan, log, ln, ^ etc.
+        expr = expr
+            .replace(/pi/g, Math.PI)
+            .replace(/sin\(/g, degMode ? "Math.sin((Math.PI/180)*" : "Math.sin(")
+            .replace(/cos\(/g, degMode ? "Math.cos((Math.PI/180)*" : "Math.cos(")
+            .replace(/tan\(/g, degMode ? "Math.tan((Math.PI/180)*" : "Math.tan(")
+            .replace(/log\(/g, "Math.log10(")
+            .replace(/ln\(/g, "Math.log(")
+            .replace(/\^/g, "**");
+
+        // Percentage
+        expr = expr.replace(/(\d+(\.\d+)?)%/g, (_, num) => num / 100);
+
+        let result = eval(expr);
+
+        lastAnswer = result;
+        screen.value = fractionMode ? toFraction(result) : result;
+
+    } catch {
+        screen.value = "Error";
+    }
+}
+
+function parseFraction(str) {
+    // Gemengde breuk: a b/c
+    if (/^\s*\d+\s+\d+\/\d+\s*$/.test(str)) {
+        const [whole, frac] = str.trim().split(/\s+/);
+        const [num, den] = frac.split("/").map(Number);
+        return Number(whole) + num / den;
     }
 
-    function clearScreen() {
-      screen.value = '';
+    // Gewone breuk: a/b
+    if (/^\s*\d+\/\d+\s*$/.test(str)) {
+        const [num, den] = str.split("/").map(Number);
+        return num / den;
     }
 
-    function backspace() {
-      screen.value = screen.value.slice(0, -1);
+    return null;
+}
+
+function toFraction(value) {
+    const tolerance = 1.0E-10;
+    let h1 = 1, h2 = 0;
+    let k1 = 0, k2 = 1;
+    let b = value;
+
+    do {
+        let a = Math.floor(b);
+        let aux = h1; h1 = a * h1 + h2; h2 = aux;
+        aux = k1; k1 = a * k1 + k2; k2 = aux;
+        b = 1 / (b - a);
+    } while (Math.abs(value - h1 / k1) > value * tolerance);
+
+    return `${h1}/${k1}`;
+}
+
+function toggleFractionMode() {
+    fractionMode = !fractionMode;
+    // label wordt via HTML knoptekst gezet als je wilt
+}
+
+function insertFraction() {
+    screen.value += " ";
+    screen.value += " / ";
+}
+
+function percentage() {
+    try {
+        let expr = screen.value;
+        expr = expr.replace(/(\d+(\.\d+)?)%/g, (_, num) => num / 100);
+        screen.value = eval(expr);
+    } catch {
+        screen.value = "Error";
     }
+}
+</script>
 
-    function calculate() {
-      try {
-        screen.value = eval(screen.value);
-      } catch {
-        screen.value = 'Error';
-      }
-    }
-
-    function square() {
-      try {
-        screen.value = Math.pow(eval(screen.value), 2);
-      } catch {
-        screen.value = 'Error';
-      }
-    }
-
-    function sqrt() {
-      try {
-        screen.value = Math.sqrt(eval(screen.value));
-      } catch {
-        screen.value = 'Error';
-      }
-    }
-
-    function percentage() {
-      try {
-        screen.value = eval(screen.value) / 100;
-      } catch {
-        screen.value = 'Error';
-      }
-    }
-
-    // Toetsenbord invoer
-    document.addEventListener('keydown', (event) => {
-      const key = event.key;
-
-      if (!isNaN(key) || ['+', '-', '*', '/', '.'].includes(key)) {
-        appendValue(key);
-      } else if (key === 'Enter') {
-        calculate();
-      } else if (key === 'Backspace') {
-        backspace();
-      } else if (key.toLowerCase() === 'c') {
-        clearScreen();
-      }
-    });
-  </script>
 </body>
 </html>
