@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kleurenpalet Generator</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .section {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .palette {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .color {
+        flex: 1;
+        height: 120px;
+        border-radius: 10px;
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 8px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+
+    .lock {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0,0,0,0.4);
+        padding: 4px 6px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
+    input[type="color"] {
+        width: 60px;
+        height: 40px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #4a6cff;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #3a57d8;
+    }
+
+    #imagePreview {
+        max-width: 100%;
+        margin-top: 10px;
+        border-radius: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Kleurenpalet Generator</h1>
+
+<!-- HARMONIES -->
+<div class="section">
+    <h2>Kleurharmonieën</h2>
+    <input type="color" id="baseColor" value="#ff6b6b">
+    <button onclick="generateHarmonies()">Genereer</button>
+
+    <div id="harmonyPalettes"></div>
+</div>
+
+<!-- RANDOM PALETTE -->
+<div class="section">
+    <h2>Willekeurig Palet</h2>
+    <button onclick="generateRandom()">Nieuw Palet</button>
+
+    <div id="randomPalette" class="palette"></div>
+</div>
+
+<!-- IMAGE EXTRACTOR -->
+<div class="section">
+    <h2>Kleuren uit Afbeelding</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <img id="imagePreview">
+
+    <div id="imagePalette" class="palette"></div>
+</div>
+
+<script>
+/* -----------------------------
+   HELPER FUNCTIONS
+------------------------------ */
+
+function hexToRgb(hex) {
+    hex = hex.replace("#", "");
+    const bigint = parseInt(hex, 16);
+    return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+    };
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + [r, g, b].map(x => {
+        const h = x.toString(16);
+        return h.length === 1 ? "0" + h : h;
+    }).join("");
+}
+
+function lighten(hex, amount) {
+    const rgb = hexToRgb(hex);
+    return rgbToHex(
+        Math.min(255, rgb.r + amount),
+        Math.min(255, rgb.g + amount),
+        Math.min(255, rgb.b + amount)
+    );
+}
+
+function darken(hex, amount) {
+    const rgb = hexToRgb(hex);
+    return rgbToHex(
+        Math.max(0, rgb.r - amount),
+        Math.max(0, rgb.g - amount),
+        Math.max(0, rgb.b - amount)
+    );
+}
+
+/* -----------------------------
+   HARMONIES
+------------------------------ */
+
+function generateHarmonies() {
+    const base = document.getElementById("baseColor").value;
+    const container = document.getElementById("harmonyPalettes");
+    container.innerHTML = "";
+
+    const harmonies = {
+        "Complementair": [base, lighten(base, 80)],
+        "Analogous": [lighten(base, 40), base, darken(base, 40)],
+        "Triadic": [base, lighten(base, 60), darken(base, 60)],
+        "Tetradic": [base, lighten(base, 80), darken(base, 80), lighten(base, 120)]
+    };
+
+    for (const [name, colors] of Object.entries(harmonies)) {
+        const div = document.createElement("div");
+        div.innerHTML = `<h3>${name}</h3>`;
+        const palette = document.createElement("div");
+        palette.className = "palette";
+
+        colors.forEach(c => {
+            const col = document.createElement("div");
+            col.className = "color";
+            col.style.background = c;
+            col.textContent = c;
+            palette.appendChild(col);
+        });
+
+        div.appendChild(palette);
+        container.appendChild(div);
+    }
+}
+
+/* -----------------------------
+   RANDOM PALETTE
+------------------------------ */
+
+let locked = [false, false, false, false, false];
+
+function randomColor() {
+    return "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+}
+
+function generateRandom() {
+    const container = document.getElementById("randomPalette");
+    container.innerHTML = "";
+
+    for (let i = 0; i < 5; i++) {
+        const color = locked[i] ? container.children[i]?.dataset.color : randomColor();
+
+        const div = document.createElement("div");
+        div.className = "color";
+        div.style.background = color;
+        div.dataset.color = color;
+        div.textContent = color;
+
+        const lock = document.createElement("div");
+        lock.className = "lock";
+        lock.textContent = locked[i] ? "🔒" : "🔓";
+        lock.onclick = () => {
+            locked[i] = !locked[i];
+            generateRandom();
+        };
+
+        div.appendChild(lock);
+        container.appendChild(div);
+    }
+}
+
+/* -----------------------------
+   IMAGE COLOR EXTRACTOR
+------------------------------ */
+
+document.getElementById("imageInput").addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const img = document.getElementById("imagePreview");
+    img.src = URL.createObjectURL(file);
+
+    img.onload = () => extractColors(img);
+});
+
+function extractColors(img) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    const colors = {};
+    for (let i = 0; i < data.length; i += 4) {
+        const hex = rgbToHex(data[i], data[i+1], data[i+2]);
+        colors[hex] = (colors[hex] || 0) + 1;
+    }
+
+    const sorted = Object.entries(colors)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(x => x[0]);
+
+    const container = document.getElementById("imagePalette");
+    container.innerHTML = "";
+
+    sorted.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "color";
+        div.style.background = c;
+        div.textContent = c;
+        container.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
