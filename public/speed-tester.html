@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Speed Test (API)</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .wrapper {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background: #f5f5f7;
+        border-radius: 10px;
+        padding: 14px;
+    }
+
+    .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.7;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    button {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 8px;
+        background: #4a6cff;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        display: block;
+        margin: 0 auto 20px;
+    }
+
+    button:hover {
+        background: #3a57d8;
+    }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+    <h1>Network Speed Test (API)</h1>
+
+    <button onclick="startTest()">Start Speedtest</button>
+
+    <div class="stats">
+        <div class="card">
+            <div class="label">Download</div>
+            <div class="value" id="downloadValue">–</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Upload</div>
+            <div class="value" id="uploadValue">–</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Ping</div>
+            <div class="value" id="pingValue">–</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Jitter</div>
+            <div class="value" id="jitterValue">–</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://librespeed.org/speedtest.js"></script>
+
+<script>
+let st = new Speedtest();
+
+function startTest() {
+    document.getElementById("downloadValue").textContent = "…";
+    document.getElementById("uploadValue").textContent = "…";
+    document.getElementById("pingValue").textContent = "…";
+    document.getElementById("jitterValue").textContent = "…";
+
+    st.onupdate = data => {
+        if (data.dlStatus) document.getElementById("downloadValue").textContent = data.dlStatus + " Mbps";
+        if (data.ulStatus) document.getElementById("uploadValue").textContent = data.ulStatus + " Mbps";
+        if (data.pingStatus) document.getElementById("pingValue").textContent = data.pingStatus + " ms";
+        if (data.jitterStatus) document.getElementById("jitterValue").textContent = data.jitterStatus + " ms";
+    };
+
+    st.onend = () => {
+        console.log("Speedtest klaar");
+    };
+
+    st.start({
+        telemetry_level: "basic",
+        time_dl: 5,
+        time_ul: 5,
+        time_ping: 3,
+        server: {
+            name: "LibreSpeed Global",
+            server: "https://speedtest.librespeed.org/",
+            dlURL: "garbage.php",
+            ulURL: "empty.php",
+            pingURL: "empty.php",
+            getIpURL: "getIP.php"
+        }
+    });
+}
+</script>
+
+</body>
+</html>
