@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clipboard Inspector</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .wrapper {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #4a6cff;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    button:hover {
+        background: #3a57d8;
+    }
+
+    .card {
+        background: #f5f5f7;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 20px;
+    }
+
+    .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.7;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 1rem;
+        font-weight: 600;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    #imagePreview {
+        max-width: 100%;
+        margin-top: 10px;
+        border-radius: 10px;
+        display: none;
+    }
+
+    .error {
+        color: #d33;
+        font-weight: 600;
+    }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+    <h1>Clipboard Inspector</h1>
+
+    <div class="controls">
+        <button onclick="readClipboard()">📥 Lees klembord</button>
+        <button onclick="writeTestText()">📤 Schrijf testtekst</button>
+        <button onclick="writeTestImage()">🖼️ Schrijf testafbeelding</button>
+    </div>
+
+    <div class="card">
+        <div class="label">Status</div>
+        <div class="value" id="statusValue">Nog niets gelezen…</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Tekstinhoud</div>
+        <div class="value" id="textValue">–</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Afbeelding</div>
+        <img id="imagePreview">
+    </div>
+</div>
+
+<script>
+const statusValue = document.getElementById("statusValue");
+const textValue = document.getElementById("textValue");
+const imagePreview = document.getElementById("imagePreview");
+
+async function readClipboard() {
+    statusValue.textContent = "Lezen…";
+
+    try {
+        const items = await navigator.clipboard.read();
+        statusValue.textContent = "Klembord gelezen ✔";
+
+        let foundText = false;
+        let foundImage = false;
+
+        for (const item of items) {
+            // Tekst
+            if (item.types.includes("text/plain")) {
+                const blob = await item.getType("text/plain");
+                const text = await blob.text();
+                textValue.textContent = text;
+                foundText = true;
+            }
+
+            // Afbeelding
+            if (item.types.includes("image/png") || item.types.includes("image/jpeg")) {
+                const type = item.types.includes("image/png") ? "image/png" : "image/jpeg";
+                const blob = await item.getType(type);
+                const url = URL.createObjectURL(blob);
+                imagePreview.src = url;
+                imagePreview.style.display = "block";
+                foundImage = true;
+            }
+        }
+
+        if (!foundText) textValue.textContent = "Geen tekst gevonden";
+        if (!foundImage) {
+            imagePreview.style.display = "none";
+        }
+
+    } catch (err) {
+        statusValue.innerHTML = `<span class="error">Fout: ${err.message}</span>`;
+    }
+}
+
+async function writeTestText() {
+    try {
+        await navigator.clipboard.writeText("Dit is een testtekst uit de Clipboard Inspector.");
+        statusValue.textContent = "Testtekst naar klembord geschreven ✔";
+    } catch (err) {
+        statusValue.innerHTML = `<span class="error">Fout: ${err.message}</span>`;
+    }
+}
+
+async function writeTestImage() {
+    try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 200;
+        canvas.height = 80;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#4a6cff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "white";
+        ctx.font = "20px sans-serif";
+        ctx.fillText("Clipboard Test", 20, 45);
+
+        canvas.toBlob(async (blob) => {
+            await navigator.clipboard.write([
+                new ClipboardItem({ "image/png": blob })
+            ]);
+            statusValue.textContent = "Testafbeelding naar klembord geschreven ✔";
+        });
+    } catch (err) {
+        statusValue.innerHTML = `<span class="error">Fout: ${err.message}</span>`;
+    }
+}
+</script>
+
+</body>
+</html>
