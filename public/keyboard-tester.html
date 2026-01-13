@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keyboard Tester</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 2px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .wrapper {
+        width: 110%;
+        max-width: 100000px;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .display {
+        background: #2c2f33;
+        color: #00ff9d;
+        font-family: "Consolas", monospace;
+        font-size: 2rem;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .keyboard {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .key {
+        padding: 12px;
+        background: #f0f0f0;
+        border-radius: 8px;
+        font-weight: 600;
+        border: 2px solid transparent;
+        transition: 0.15s;
+        user-select: none;
+        cursor: pointer;
+        min-width: 45px;
+        text-align: center;
+        flex: 0 1 auto;
+    }
+
+    .key.wide { min-width: 80px; }
+    .key.extra-wide { min-width: 140px; }
+
+    .key.active {
+        background: #4a6cff;
+        color: white;
+        border-color: #2f49d1;
+        transform: scale(1.05);
+    }
+
+    .mods {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .mod {
+        padding: 10px 16px;
+        background: #ddd;
+        border-radius: 8px;
+        font-weight: 600;
+        border: 2px solid transparent;
+    }
+
+    .mod.active {
+        background: #ff8a3d;
+        color: white;
+        border-color: #d66a1f;
+    }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+    <h1>Keyboard Tester</h1>
+
+    <div class="display" id="display">Druk op een toets…</div>
+
+    <div class="mods">
+        <div class="mod" id="modShift">Shift</div>
+        <div class="mod" id="modCtrl">Ctrl</div>
+        <div class="mod" id="modAlt">Alt</div>
+        <div class="mod" id="modMeta">Meta</div>
+    </div>
+
+    <div class="keyboard" id="keyboard"></div>
+</div>
+
+<script>
+const display = document.getElementById("display");
+const keyboard = document.getElementById("keyboard");
+
+const modShift = document.getElementById("modShift");
+const modCtrl = document.getElementById("modCtrl");
+const modAlt = document.getElementById("modAlt");
+const modMeta = document.getElementById("modMeta");
+
+// QWERTY layout
+const layout = [
+    ["Esc","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"],
+    ["`","1","2","3","4","5","6","7","8","9","0","-","=","Backspace"],
+    ["Tab","Q","W","E","R","T","Y","U","I","O","P","[","]","\\"],
+    ["Caps","A","S","D","F","G","H","J","K","L",";","'","Enter"],
+    ["Shift","Z","X","C","V","B","N","M",",",".","/","Shift"],
+    ["Ctrl","Meta","Alt","Space","Alt","Meta","Menu","Ctrl"]
+];
+
+// Build keyboard
+layout.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "row";
+
+    row.forEach(key => {
+        const div = document.createElement("div");
+        div.className = "key";
+        div.textContent = key;
+        div.dataset.key = key.toUpperCase();
+
+        if (key === "Backspace") div.classList.add("wide");
+        if (key === "Enter") div.classList.add("wide");
+        if (key === "Shift") div.classList.add("wide");
+        if (key === "Caps") div.classList.add("wide");
+        if (key === "Space") div.classList.add("extra-wide");
+
+        div.addEventListener("mousedown", () => activateKey(key.toUpperCase()));
+        div.addEventListener("mouseup", clearActive);
+
+        rowDiv.appendChild(div);
+    });
+
+    keyboard.appendChild(rowDiv);
+});
+
+function clearActive() {
+    document.querySelectorAll(".key.active").forEach(el => el.classList.remove("active"));
+}
+
+function activateKey(key) {
+    clearActive();
+    const el = document.querySelector(`.key[data-key="${key}"]`);
+    if (el) el.classList.add("active");
+    display.textContent = key;
+}
+
+document.addEventListener("keydown", e => {
+    e.preventDefault();
+
+    let key = e.key;
+
+    // Normalize
+    if (key.length === 1) key = key.toUpperCase();
+    if (key === " ") key = "SPACE";
+    if (key === "CONTROL") key = "CTRL";
+    if (key === "ALTGRAPH") key = "ALT";
+    if (key === "OS") key = "META";
+
+    activateKey(key);
+
+    modShift.classList.toggle("active", e.shiftKey);
+    modCtrl.classList.toggle("active", e.ctrlKey);
+    modAlt.classList.toggle("active", e.altKey);
+    modMeta.classList.toggle("active", e.metaKey);
+});
+
+document.addEventListener("keyup", () => {
+    modShift.classList.remove("active");
+    modCtrl.classList.remove("active");
+    modAlt.classList.remove("active");
+    modMeta.classList.remove("active");
+});
+</script>
+
+</body>
+</html>
