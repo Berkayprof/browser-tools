@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mouse Tester</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #212B14;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .wrapper {
+        width: 100%;
+        max-width: 800px;
+        background: #080F01;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        border-radius: 10px;
+        padding: 12px 12px;
+        background-color: black;
+        color: #63ad58
+    }
+
+    .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.7;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .btn-indicator {
+        flex: 1;
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: #2E2E2E;
+        text-align: center;
+        font-size: 0.6rem;
+        font-weight: 600;
+        border: 2px solid transparent;
+    }
+
+    .btn-indicator.active {
+        background: #4a6cff;
+        color: #fff;
+        border-color: #2f49d1;
+    }
+
+    .area-wrapper {
+        margin-top: 10px;
+    }
+
+    .area-label {
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .test-area {
+        border-radius: 14px;
+        background: #2c2f33;
+        height: 260px;
+        position: relative;
+        overflow: hidden;
+        cursor: crosshair;
+        color: #fff;
+    }
+
+    .crosshair {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        pointer-events: none;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+        content: "";
+        position: absolute;
+        background: rgba(0,255,157,0.7);
+    }
+
+    .crosshair::before {
+        width: 1000vw;
+        height: 1px;
+        top: 0;
+        left: -500vw;
+    }
+
+    .crosshair::after {
+        height: 100vh;
+        width: 1px;
+        left: 0;
+        top: -50vh;
+    }
+
+    .hint {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .event-log {
+        margin-top: 18px;
+        font-family: "Consolas", monospace;
+        font-size: 0.85rem;
+        max-height: 130px;
+        overflow-y: auto;
+        background: #f5f5f7;
+        border-radius: 10px;
+        padding: 10px;
+        white-space: pre-wrap;
+        color: #63ad58;
+        background-color: black;
+    }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+    <h1 style="color:#63ad58;">Mouse Tester</h1>
+
+    <div class="status-grid">
+        <div class="card">
+            <div class="label">Positie</div>
+            <div class="value" id="posValue">X: – , Y: –</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Laatste klik</div>
+            <div class="value" id="clickValue">–</div>
+            <div class="buttons">
+                <div class="btn-indicator" id="btnLeft">Links</div>
+                <div class="btn-indicator" id="btnMiddle">Midden</div>
+                <div class="btn-indicator" id="btnRight">Rechts</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="label">Dubbelklik</div>
+            <div class="value" id="dblClickValue">–</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Scroll (wheel)</div>
+            <div class="value" id="wheelValue">ΔY: 0</div>
+        </div>
+    </div>
+
+    <div class="area-wrapper">
+        <div class="area-label">Testvlak (klik, sleep, scroll)</div>
+        <div class="test-area" id="testArea">
+            <div class="crosshair" id="crosshair"></div>
+            <div class="hint">Beweeg, klik, dubbelklik of scroll hier binnen</div>
+        </div>
+    </div>
+
+    <div class="event-log" id="log"></div>
+</div>
+
+<script>
+const posValue = document.getElementById("posValue");
+const clickValue = document.getElementById("clickValue");
+const dblClickValue = document.getElementById("dblClickValue");
+const wheelValue = document.getElementById("wheelValue");
+const btnLeft = document.getElementById("btnLeft");
+const btnMiddle = document.getElementById("btnMiddle");
+const btnRight = document.getElementById("btnRight");
+const testArea = document.getElementById("testArea");
+const crosshair = document.getElementById("crosshair");
+const logEl = document.getElementById("log");
+
+function setButtons(active) {
+    btnLeft.classList.toggle("active", active === 0);
+    btnMiddle.classList.toggle("active", active === 1);
+    btnRight.classList.toggle("active", active === 2);
+}
+
+function buttonName(button) {
+    if (button === 0) return "Links";
+    if (button === 1) return "Midden";
+    if (button === 2) return "Rechts";
+    return "Onbekend";
+}
+
+function log(msg) {
+    const time = new Date().toLocaleTimeString();
+    logEl.textContent = `[${time}] ${msg}\n` + logEl.textContent;
+}
+
+// Positie in testvlak volgen
+testArea.addEventListener("mousemove", (e) => {
+    const rect = testArea.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+
+    posValue.textContent = `X: ${x}, Y: ${y}`;
+
+    crosshair.style.left = x + "px";
+    crosshair.style.top = y + "px";
+});
+
+// Klikken
+testArea.addEventListener("mousedown", (e) => {
+    const name = buttonName(e.button);
+    clickValue.textContent = name;
+    setButtons(e.button);
+    log(`Mousedown (${name})`);
+});
+
+testArea.addEventListener("mouseup", (e) => {
+    setButtons(null);
+    log(`Mouseup (${buttonName(e.button)})`);
+});
+
+// Dubbelklik
+testArea.addEventListener("dblclick", (e) => {
+    dblClickValue.textContent = "Ja";
+    log(`Double click (${buttonName(e.button)})`);
+    setTimeout(() => {
+        dblClickValue.textContent = "–";
+    }, 800);
+});
+
+// Scroll
+testArea.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    wheelValue.textContent = `ΔY: ${e.deltaY}`;
+    log(`Scroll (deltaY: ${e.deltaY})`);
+}, { passive: false });
+</script>
+
+</body>
+</html>
