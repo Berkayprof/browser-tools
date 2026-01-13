@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Touchscreen Tester</title>
+
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .wrapper {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background: #f5f5f7;
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.7;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .test-area {
+        border-radius: 14px;
+        background: #2c2f33;
+        height: 320px;
+        position: relative;
+        overflow: hidden;
+        touch-action: none;
+        color: #fff;
+    }
+
+    .finger {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background: rgba(0,255,157,0.4);
+        border: 2px solid #00ff9d;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    .event-log {
+        margin-top: 18px;
+        font-family: "Consolas", monospace;
+        font-size: 0.85rem;
+        max-height: 150px;
+        overflow-y: auto;
+        background: #f5f5f7;
+        border-radius: 10px;
+        padding: 10px;
+        white-space: pre-wrap;
+    }
+
+    .hint {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+    <h1>Touchscreen Tester</h1>
+
+    <div class="status-grid">
+        <div class="card">
+            <div class="label">Aantal vingers</div>
+            <div class="value" id="touchCount">0</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Laatste event</div>
+            <div class="value" id="lastEvent">–</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Positie</div>
+            <div class="value" id="posValue">X: –, Y: –</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Druk (force)</div>
+            <div class="value" id="forceValue">–</div>
+        </div>
+    </div>
+
+    <div class="test-area" id="testArea">
+        <div class="hint">Raak het scherm aan met één of meerdere vingers</div>
+    </div>
+
+    <div class="event-log" id="log"></div>
+</div>
+
+<script>
+const testArea = document.getElementById("testArea");
+const touchCount = document.getElementById("touchCount");
+const lastEvent = document.getElementById("lastEvent");
+const posValue = document.getElementById("posValue");
+const forceValue = document.getElementById("forceValue");
+const logEl = document.getElementById("log");
+
+const fingers = {};
+
+function log(msg) {
+    const time = new Date().toLocaleTimeString();
+    logEl.textContent = `[${time}] ${msg}\n` + logEl.textContent;
+}
+
+function updateStatus(evName, touches) {
+    lastEvent.textContent = evName;
+    touchCount.textContent = touches.length;
+
+    if (touches.length > 0) {
+        const t = touches[0];
+        posValue.textContent = `X: ${Math.round(t.clientX)}, Y: ${Math.round(t.clientY)}`;
+        forceValue.textContent = t.force ? t.force.toFixed(2) : "0";
+    } else {
+        posValue.textContent = "X: –, Y: –";
+        forceValue.textContent = "–";
+    }
+}
+
+function drawFingers(touches) {
+    for (const id in fingers) {
+        if (![...touches].some(t => t.identifier == id)) {
+            fingers[id].remove();
+            delete fingers[id];
+        }
+    }
+
+    [...touches].forEach(t => {
+        if (!fingers[t.identifier]) {
+            const dot = document.createElement("div");
+            dot.className = "finger";
+            testArea.appendChild(dot);
+            fingers[t.identifier] = dot;
+        }
+        fingers[t.identifier].style.left = t.clientX + "px";
+        fingers[t.identifier].style.top = t.clientY + "px";
+    });
+}
+
+testArea.addEventListener("touchstart", e => {
+    e.preventDefault();
+    updateStatus("touchstart", e.touches);
+    drawFingers(e.touches);
+    log(`touchstart (${e.touches.length} vingers)`);
+});
+
+testArea.addEventListener("touchmove", e => {
+    e.preventDefault();
+    updateStatus("touchmove", e.touches);
+    drawFingers(e.touches);
+});
+
+testArea.addEventListener("touchend", e => {
+    e.preventDefault();
+    updateStatus("touchend", e.touches);
+    drawFingers(e.touches);
+    log(`touchend`);
+});
+
+testArea.addEventListener("touchcancel", e => {
+    e.preventDefault();
+    updateStatus("touchcancel", e.touches);
+    drawFingers(e.touches);
+    log(`touchcancel`);
+});
+</script>
+
+</body>
+</html>
