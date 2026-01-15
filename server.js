@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
 
 // Aangepaste 404 pagina
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', 'error.html'));
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 // Start de server (Render gebruikt zelf PORT variabele)
