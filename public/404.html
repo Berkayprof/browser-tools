@@ -1,84 +1,240 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/x-icon" href="https://i.ibb.co/zRj6qQB/favicon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 Error - Proxy School</title>
+  <meta charset="UTF-8">
+  <title>404 - Hond heeft de pagina opgegeten</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f3ea;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #333;
+      padding: 4vw;
+    }
+
+    .wrapper {
+      text-align: center;
+      padding: 8vw 5vw;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .dog-wrapper {
+      width: min(220px, 60vw);
+      margin: 0 auto 10px;
+      position: relative;
+    }
+
+    .dog-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18));
+      transform-origin: center bottom;
+      animation: dogIdle 2.4s ease-in-out infinite;
+    }
+
+    .crumbs {
+      position: relative;
+      height: 40px;
+      margin-bottom: 10px;
+    }
+
+    .crumb {
+      position: absolute;
+      width: 10px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c49a6c;
+      opacity: 0;
+      transform: scale(0.4);
+    }
+
+    .title {
+      font-size: clamp(32px, 6vw, 52px);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: clamp(14px, 3.5vw, 18px);
+      margin-bottom: 16px;
+    }
+
+    .text {
+      font-size: clamp(13px, 3vw, 15px);
+      max-width: 380px;
+      margin: 0 auto 24px;
+      color: #555;
+    }
+
+    .button {
+      display: inline-block;
+      padding: clamp(8px, 2vw, 12px) clamp(16px, 4vw, 22px);
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      background: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      color: #333;
+      font-size: clamp(13px, 3vw, 14px);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background: #fdf8f0;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    @keyframes dogIdle {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      40% { transform: translateY(-4px) rotate(-1.5deg); }
+      70% { transform: translateY(1px) rotate(1deg); }
+    }
+
+    @keyframes crumbPop {
+      0% {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.4);
+      }
+      40% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(6px) scale(0.8);
+      }
+    }
+
+    .dog-wrapper:hover .dog-svg {
+      animation-duration: 1.4s;
+      transform: translateY(-2px) rotate(-2deg);
+    }
+
+    @media (max-width: 480px) {
+      .crumbs {
+        height: 30px;
+      }
+      .dog-wrapper:hover .dog-svg {
+        transform: none;
+      }
+    }
+  </style>
 </head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
-        h1 {
-            font-size: 50px;
-        }
-        h2 {
-            font-size: 30px;
-        }
-        p {
-            font-size: 20px;
-        }
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        img {
-            width: 250px;
-            height: 250px;
-            margin: 20px 0;
-        }
-        .footer {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  color: black;
-  text-align: center;
-  font-size: 10px;
-}
-.hb {
-  color: red;
-}
-/*knop*/
-.button{
-    background: linear-gradient(45deg, #00ff00, #ff0000); /* Gradient van rood naar lichter rood */
-    background-size: 200% 100%; /* Zorgt ervoor dat de gradient groter is dan de knop */
-    border: none; /* Geen rand */
-    color: white; /* Witte tekst */
-    padding: 15px 32px; /* Opvulling */
-    text-align: center; /* Tekst centreren */
-    text-decoration: none; /* Geen onderstreping */
-    display: inline-block; /* Inline blok */
-    font-size: 16px; /* Lettergrootte */
-    margin: 4px 2px; /* Marges */
-    cursor: pointer; /* Cursor veranderen bij hover */
-    border-radius: 12px; /* Ronde hoeken */
-    transition: background-position 0.5s ease, transform 0.3s ease; /* Overgangseffecten */
-    background-position: right; /* Startpositie van de gradient */
-}
-.button:hover {
-    transform: scale(1.05); /* Knop iets vergroten bij hover */
-}
-    </style>
+
 <body>
-    <!--text1-->
-    <h1>Error 404</h1>
-    <h2>Something went wrong.</h2>
-    <!--afbeelding-->
-    <img src="https://img.freepik.com/free-vector/isometric-error-background-hand-reaches-out-from-hole-with-sign-error-four-hundred-four-vector-illustration_1284-67441.jpg" alt="404 afbeelding">
-    <!--text2-->
-    <p>Sorry, de opgegeven pagina bestaat niet.</p>
-    <!--knop-->
-    <a href="https://proxy-school.glitch.me"><button class="button">Terug naar de homepagina</button></a>
-    <!--footer-->
-    <div class="footer">
-       <p>Website gemaakt door <a href="https://de-padden-van-de-pijler.on.drv.tw/berkay.html">Berkay</a> | powered by <strong  class="hb">HB</strong></p>
+  <div class="wrapper">
+    <div class="dog-wrapper" id="dog">
+
+      <!-- SVG DOG -->
+      <svg class="dog-svg" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+
+        <!-- shadow -->
+        <ellipse cx="110" cy="182" rx="70" ry="16" fill="rgba(0,0,0,0.12)"/>
+
+        <!-- body -->
+        <rect x="60" y="90" width="100" height="60" rx="24" fill="#c58a5b"/>
+
+        <!-- belly -->
+        <rect x="70" y="100" width="80" height="50" rx="22" fill="#d9a578"/>
+
+        <!-- back leg -->
+        <rect x="130" y="135" width="18" height="40" rx="8" fill="#b5784a"/>
+        <ellipse cx="139" cy="176" rx="11" ry="5.5" fill="#b5784a"/>
+
+        <!-- front leg -->
+        <rect x="80" y="135" width="18" height="40" rx="8" fill="#b5784a"/>
+        <ellipse cx="89" cy="176" rx="11" ry="5.5" fill="#b5784a"/>
+
+        <!-- tail -->
+        <path d="M158 100 C180 92 188 72 180 56 C172 42 160 46 158 60"
+              stroke="#b5784a" stroke-width="10" stroke-linecap="round" fill="none"/>
+
+        <!-- collar -->
+        <rect x="60" y="112" width="50" height="10" rx="5" fill="#2f4f90"/>
+        <circle cx="84" cy="125" r="6" fill="#f4d26b" stroke="#d1b15a" stroke-width="2"/>
+
+        <!-- head base -->
+        <rect x="38" y="50" width="74" height="64" rx="28" fill="#c58a5b"/>
+
+        <!-- snout -->
+        <rect x="48" y="80" width="60" height="36" rx="18" fill="#d9a578"/>
+
+        <!-- nose -->
+        <ellipse cx="50" cy="96" rx="7" ry="5" fill="#333"/>
+
+        <!-- mouth -->
+        <path d="M60 104 Q70 112 84 106" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+        <!-- eyes -->
+        <circle cx="66" cy="82" r="4.2" fill="#222"/>
+        <circle cx="88" cy="82" r="4.2" fill="#222"/>
+        <circle cx="65.2" cy="81" r="1.4" fill="#fff"/>
+        <circle cx="87.2" cy="81" r="1.4" fill="#fff"/>
+
+        <!-- eyebrows -->
+        <path d="M 60 76 Q 64 70 69 73" stroke="#4a2f1a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 84 73 Q 89 70 93 75" stroke="#4a2f1a" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- ears -->
+        <path d="M52 52 C40 40 38 26 48 20 C60 14 70 26 70 40 Z" fill="#8b5a35"/>
+        <path d="M92 52 C104 40 106 26 96 20 C84 14 74 26 74 40 Z" fill="#8b5a35"/>
+
+      </svg>
     </div>
+
+    <div class="crumbs" id="crumbs"></div>
+
+    <div class="title">404</div>
+    <div class="subtitle">Onze hond heeft deze pagina opgegeten.</div>
+
+    <p class="text">
+      We geven hem elke dag te eten, maar blijkbaar was jouw pagina net iets te lekker.
+    </p>
+
+    <button class="button" id="backHome">Breng me terug naar een veilige plek</button>
+  </div>
+
+  <script>
+    const crumbsContainer = document.getElementById('crumbs');
+    const dog = document.getElementById('dog');
+
+    function dropCrumb() {
+      const crumb = document.createElement('div');
+      crumb.className = 'crumb';
+      const x = 50 + (Math.random() * 40 - 20);
+      crumb.style.left = x + '%';
+      crumb.style.top = (Math.random() * 10 + 10) + 'px';
+      crumb.style.animation = 'crumbPop 1.2s ease-out forwards';
+      crumbsContainer.appendChild(crumb);
+      setTimeout(() => crumb.remove(), 1300);
+    }
+
+    setInterval(dropCrumb, 650);
+
+    dog.addEventListener('mouseenter', () => {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(dropCrumb, i * 110);
+      }
+    });
+
+    document.getElementById('backHome').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+  </script>
 </body>
 </html>
