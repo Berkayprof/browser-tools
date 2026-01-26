@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -180,6 +179,33 @@
             inset 4px 4px 8px var(--shadow-dark),
             inset -4px -4px 8px var(--shadow-light);
     }
+    
+.search-wrapper {
+    width: 115%;          /* hoe breed je hem wilt */
+    max-width: 1000px;    /* optioneel: limiet */
+    margin: 20px auto 60px;
+    padding: 0 20px;
+    transform: translateX(0%); /* compenseert de extra breedte */
+}
+
+#toolSearch {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 1rem;
+    border-radius: 19990px;
+    border: 2px solid var(--border, #ccc);
+    background: var(--card, #fff);
+    color: var(--text, #000);
+    outline: none;
+    transition: 0.2s;
+    box-sizing: border-box;
+}
+
+#toolSearch:focus {
+    border-color: var(--accent, #4a6cff);
+    box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.2);
+}
+
 </style>
 </head>
 <body>
@@ -190,6 +216,11 @@
     <h1>Browser Tools</h1>
     <p>Een verzameling slimme, snelle en gratis tools in je browser.</p>
 </div>
+
+<div class="search-wrapper">
+    <input type="text" id="toolSearch" placeholder="🔍 Zoek een tool...">
+</div>
+
 
 <div class="container">
 
@@ -202,7 +233,6 @@
             <a class="tool-card" href="calc.html">🧮 Rekenmachine<span>Snelle berekeningen</span></a>
             <a class="tool-card" href="color.html">🎨 Colorpicker<span>Kleuren kiezen & kopiëren</span></a>
             <a class="tool-card" href="youtube.html">📥 YouTube Unblocker<span>Video’s unblocken</span></a>
-            <!--<a class="tool-card" href="proxy.html">🛡️ Proxy Searcher<span>Zoeken & browsen via proxy</span></a>-->
             <a class="tool-card" href="currency-converter.html">💱 Currency Converter<span>Realtime wisselkoersen</span></a>
         </div>
     </div>
@@ -219,8 +249,6 @@
             <a class="tool-card" href="groups.html">🧑‍🤝‍🧑 Groepsmaker<span>Random teams maken</span></a>
             <a class="tool-card" href="lorem-ipsum.html">📄 Lorem Ipsum<span>Dummy-tekst genereren</span></a>
             <a class="tool-card" href="background-remover.html">🖼 Background Remover<span>Verwijder achtergrond</span></a>
-
-            <!-- Nieuwe tools -->
             <a class="tool-card" href="case-converter-pro.html">🔡 Case Converter Pro<span>Alle schrijfwijzen</span></a>
             <a class="tool-card" href="text-diff-checker.html">📝 Text Diff Checker<span>Vergelijk twee teksten</span></a>
         </div>
@@ -242,10 +270,15 @@
             <a class="tool-card" href="dns-lookup.html">🌐 DNS Lookup<span>DNS‑records bekijken</span></a>
             <a class="tool-card" href="ping-tester.html">⚡ Ping Tester<span>Netwerkvertraging meten</span></a>
             <a class="tool-card" href="ip-geolocation.html">🌍 IP Geolocation<span>Locatie van IP</span></a>
-
-            <!-- Nieuwe tools -->
             <a class="tool-card" href="number-base-converter.html">🔢 Base Converter<span>Binair, decimaal, hex</span></a>
             <a class="tool-card" href="gradient-generator.html">🎨 Gradient Generator<span>Maak gradients</span></a>
+
+            <!-- Nieuwe hardware/dev tools -->
+            <a class="tool-card" href="keyboard-tester.html">⌨️ Keyboard Tester<span>Toetsen testen</span></a>
+            <a class="tool-card" href="mouse-tester.html">🖱 Mouse Tester<span>Knoppen & beweging</span></a>
+            <a class="tool-card" href="touchscreen-tester.html">📱 Touchscreen Tester<span>Multi‑touch & druk</span></a>
+            <a class="tool-card" href="clipboard-inspector.html">📋 Clipboard Inspector<span>Klembordinhoud bekijken</span></a>
+            <a class="tool-card" href="network-speed-test.html">⚡ Speed Test<span>Download, upload & ping</span></a>
         </div>
     </div>
 
@@ -297,7 +330,6 @@
     const root = document.documentElement;
     const toggleBtn = document.getElementById("themeToggle");
 
-    // Dark mode behouden
     if (localStorage.getItem("theme") === "dark") {
         root.classList.add("dark");
     }
@@ -307,7 +339,6 @@
         localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
     });
 
-    // 🎨 Random banner gradients
     const gradients = [
         "linear-gradient(90deg, hsla(64, 41%, 92%, 1) 0%, hsla(196, 83%, 84%, 1) 50%, hsla(305, 75%, 83%, 1) 100%)",
         "linear-gradient(125deg, hsla(154, 100%, 76%, 1) 0%, hsla(66, 64%, 74%, 1) 45%, hsla(347, 71%, 89%, 1) 100%)",
@@ -316,13 +347,33 @@
         "linear-gradient(270deg, hsla(283, 47%, 78%, 1) 0%, hsla(104, 25%, 82%, 1) 100%)"
     ];
 
-    // Kies willekeurige gradient
-    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
-
-    // Pas toe op de banner
-    document.querySelector(".banner").style.background = randomGradient;
+    document.querySelector(".banner").style.background =
+        gradients[Math.floor(Math.random() * gradients.length)];
 </script>
+<script>
+const searchInput = document.getElementById("toolSearch");
+const sections = document.querySelectorAll(".section");
 
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    sections.forEach(section => {
+        const cards = section.querySelectorAll(".tool-card");
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const match = text.includes(query);
+
+            card.style.display = match ? "flex" : "none";
+            if (match) visibleCount++;
+        });
+
+        // Verberg hele categorie als er geen matches zijn
+        section.style.display = visibleCount > 0 ? "block" : "none";
+    });
+});
+</script>
 
 </body>
 </html>
