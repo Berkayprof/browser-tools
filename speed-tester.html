@@ -1,146 +1,311 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Network Speed Test (API)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Speed Test – Browser Tools</title>
+    <style>
+        :root {
+            --bg: #e6e9ef;
+            --text: #1a1a1a;
+            --accent: #6a8dff;
+            --accent2: #ff8ac2;
+            --accent3: #7ed957;
+            --shadow-light: rgba(255,255,255,0.9);
+            --shadow-dark: rgba(0,0,0,0.18);
+            --card-bg: #e6e9ef;
+        }
+        :root.dark {
+            --bg: #1f1f24;
+            --text: #f1f1f1;
+            --accent: #7aa2ff;
+            --accent2: #ff7ab8;
+            --accent3: #8be96c;
+            --shadow-light: rgba(255,255,255,0.06);
+            --shadow-dark: rgba(0,0,0,0.6);
+            --card-bg: #1f1f24;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; transition: background 0.3s, color 0.3s; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
 
-<style>
-    body {
-        font-family: system-ui, sans-serif;
-        background: #eef1f5;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-    }
+        .back-btn {
+            align-self: flex-start;
+            margin-bottom: 20px;
+            background: var(--bg);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text);
+            text-decoration: none;
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+        }
+        .back-btn:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
 
-    .wrapper {
-        width: 100%;
-        max-width: 800px;
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-    }
+        .theme-toggle {
+            position: fixed; top: 20px; right: 20px;
+            background: var(--bg); border: none; padding: 12px 18px; border-radius: 14px;
+            cursor: pointer; font-size: 1rem; color: var(--text);
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+        }
 
-    h1 {
-        text-align: center;
-        margin-top: 0;
-        margin-bottom: 20px;
-    }
+        h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+        .subtitle { opacity: 0.6; margin-bottom: 40px; font-size: 0.95rem; }
 
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
-    }
+        .gauge-row {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
 
-    .card {
-        background: #f5f5f7;
-        border-radius: 10px;
-        padding: 14px;
-    }
+        .gauge {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 28px 24px;
+            text-align: center;
+            width: 160px;
+            box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+            position: relative;
+        }
+        .gauge .icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .gauge .val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            min-height: 2.4rem;
+            line-height: 1.1;
+        }
+        .gauge:nth-child(2) .val { color: var(--accent2); }
+        .gauge:nth-child(3) .val { color: var(--accent3); }
+        .gauge:nth-child(4) .val { color: #ffb347; }
+        .gauge .unit { font-size: 0.8rem; opacity: 0.6; margin-top: 2px; }
+        .gauge .label { font-size: 0.85rem; font-weight: 600; margin-top: 6px; opacity: 0.8; }
 
-    .label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        opacity: 0.7;
-        margin-bottom: 4px;
-    }
+        .progress-bar-wrap {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 99px;
+            height: 12px;
+            margin-bottom: 30px;
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 99px;
+            transition: width 0.3s ease;
+        }
 
-    .value {
-        font-size: 1.4rem;
-        font-weight: 700;
-    }
+        .status-text {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-bottom: 30px;
+            min-height: 1.4rem;
+        }
 
-    button {
-        padding: 12px 18px;
-        border: none;
-        border-radius: 8px;
-        background: #4a6cff;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-        display: block;
-        margin: 0 auto 20px;
-    }
+        .start-btn {
+            background: var(--card-bg);
+            border: none;
+            padding: 16px 40px;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+            margin-bottom: 40px;
+        }
+        .start-btn:hover { box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light); }
+        .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    button:hover {
-        background: #3a57d8;
-    }
-</style>
+        .info-box {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 18px 24px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+            font-size: 0.85rem;
+            opacity: 0.7;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .pulsing { animation: pulse 1s ease-in-out infinite; }
+    </style>
 </head>
-
 <body>
-<div class="wrapper">
-    <h1>Network Speed Test (API)</h1>
+    <button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+    <a class="back-btn" href="index.html">← Terug</a>
 
-    <button onclick="startTest()">Start Speedtest</button>
+    <h1>⚡ Speed Test</h1>
+    <p class="subtitle">Meet je download, upload, ping en jitter</p>
 
-    <div class="stats">
-        <div class="card">
+    <div class="gauge-row">
+        <div class="gauge">
+            <div class="icon">⬇️</div>
+            <div class="val" id="dlVal">–</div>
+            <div class="unit">Mbps</div>
             <div class="label">Download</div>
-            <div class="value" id="downloadValue">–</div>
         </div>
-
-        <div class="card">
+        <div class="gauge">
+            <div class="icon">⬆️</div>
+            <div class="val" id="ulVal">–</div>
+            <div class="unit">Mbps</div>
             <div class="label">Upload</div>
-            <div class="value" id="uploadValue">–</div>
         </div>
-
-        <div class="card">
+        <div class="gauge">
+            <div class="icon">📡</div>
+            <div class="val" id="pingVal">–</div>
+            <div class="unit">ms</div>
             <div class="label">Ping</div>
-            <div class="value" id="pingValue">–</div>
         </div>
-
-        <div class="card">
+        <div class="gauge">
+            <div class="icon">〰️</div>
+            <div class="val" id="jitterVal">–</div>
+            <div class="unit">ms</div>
             <div class="label">Jitter</div>
-            <div class="value" id="jitterValue">–</div>
         </div>
     </div>
-</div>
 
-<script src="https://librespeed.org/speedtest.js"></script>
+    <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="status-text" id="statusText">Klik op Start om te beginnen</div>
 
-<script>
-let st = new Speedtest();
+    <button class="start-btn" id="startBtn" onclick="runTest()">🚀 Start Speedtest</button>
 
-function startTest() {
-    document.getElementById("downloadValue").textContent = "…";
-    document.getElementById("uploadValue").textContent = "…";
-    document.getElementById("pingValue").textContent = "…";
-    document.getElementById("jitterValue").textContent = "…";
+    <div class="info-box">
+        Gebaseerd op de <strong>Cloudflare Speed Test API</strong>. Metingen worden gedaan via meerdere verbindingen naar Cloudflare's netwerk voor een nauwkeurig resultaat.
+    </div>
 
-    st.onupdate = data => {
-        if (data.dlStatus) document.getElementById("downloadValue").textContent = data.dlStatus + " Mbps";
-        if (data.ulStatus) document.getElementById("uploadValue").textContent = data.ulStatus + " Mbps";
-        if (data.pingStatus) document.getElementById("pingValue").textContent = data.pingStatus + " ms";
-        if (data.jitterStatus) document.getElementById("jitterValue").textContent = data.jitterStatus + " ms";
-    };
+    <script>
+        // Theme
+        const root = document.documentElement;
+        if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+        document.getElementById("themeToggle").addEventListener("click", () => {
+            root.classList.toggle("dark");
+            localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+        });
 
-    st.onend = () => {
-        console.log("Speedtest klaar");
-    };
+        const dlEl = document.getElementById("dlVal");
+        const ulEl = document.getElementById("ulVal");
+        const pingEl = document.getElementById("pingVal");
+        const jitterEl = document.getElementById("jitterVal");
+        const statusEl = document.getElementById("statusText");
+        const progressEl = document.getElementById("progressBar");
+        const startBtn = document.getElementById("startBtn");
 
-    st.start({
-        telemetry_level: "basic",
-        time_dl: 5,
-        time_ul: 5,
-        time_ping: 3,
-        server: {
-            name: "LibreSpeed Global",
-            server: "https://speedtest.librespeed.org/",
-            dlURL: "garbage.php",
-            ulURL: "empty.php",
-            pingURL: "empty.php",
-            getIpURL: "getIP.php"
+        function setProgress(pct) { progressEl.style.width = pct + "%"; }
+        function setStatus(msg, pulse = false) {
+            statusEl.textContent = msg;
+            statusEl.className = "status-text" + (pulse ? " pulsing" : "");
         }
-    });
-}
-</script>
 
+        // Measure ping via Cloudflare /cdn-cgi/trace
+        async function measurePing(samples = 8) {
+            const times = [];
+            for (let i = 0; i < samples; i++) {
+                const t0 = performance.now();
+                await fetch("https://speed.cloudflare.com/__down?bytes=0&_=" + Date.now() + i, { cache: "no-store" });
+                times.push(performance.now() - t0);
+            }
+            times.sort((a, b) => a - b);
+            const trimmed = times.slice(1, -1); // remove outliers
+            const avg = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+            const jitter = Math.max(...trimmed) - Math.min(...trimmed);
+            return { ping: Math.round(avg), jitter: Math.round(jitter) };
+        }
+
+        // Measure download speed
+        async function measureDownload() {
+            const sizes = [102400, 1048576, 10485760]; // 100KB, 1MB, 10MB
+            let totalBits = 0;
+            let totalTime = 0;
+
+            for (const size of sizes) {
+                const t0 = performance.now();
+                await fetch(`https://speed.cloudflare.com/__down?bytes=${size}&_=${Date.now()}`, { cache: "no-store" });
+                const dt = (performance.now() - t0) / 1000;
+                totalBits += size * 8;
+                totalTime += dt;
+                const current = ((totalBits / totalTime) / 1e6).toFixed(1);
+                dlEl.textContent = current;
+            }
+
+            return (totalBits / totalTime / 1e6).toFixed(1);
+        }
+
+        // Measure upload speed
+        async function measureUpload() {
+            const sizes = [65536, 524288, 1048576]; // 64KB, 512KB, 1MB
+            let totalBits = 0;
+            let totalTime = 0;
+
+            for (const size of sizes) {
+                const data = new Uint8Array(size);
+                crypto.getRandomValues(data.subarray(0, Math.min(1024, size)));
+                const blob = new Blob([data]);
+
+                const t0 = performance.now();
+                await fetch("https://speed.cloudflare.com/__up", {
+                    method: "POST",
+                    body: blob,
+                    cache: "no-store"
+                });
+                const dt = (performance.now() - t0) / 1000;
+                totalBits += size * 8;
+                totalTime += dt;
+                const current = ((totalBits / totalTime) / 1e6).toFixed(1);
+                ulEl.textContent = current;
+            }
+
+            return (totalBits / totalTime / 1e6).toFixed(1);
+        }
+
+        async function runTest() {
+            startBtn.disabled = true;
+            dlEl.textContent = "–";
+            ulEl.textContent = "–";
+            pingEl.textContent = "–";
+            jitterEl.textContent = "–";
+
+            try {
+                // Ping
+                setStatus("📡 Ping meten…", true);
+                setProgress(5);
+                const { ping, jitter } = await measurePing();
+                pingEl.textContent = ping;
+                jitterEl.textContent = jitter;
+                setProgress(25);
+
+                // Download
+                setStatus("⬇️ Download meten…", true);
+                const dl = await measureDownload();
+                dlEl.textContent = dl;
+                setProgress(70);
+
+                // Upload
+                setStatus("⬆️ Upload meten…", true);
+                const ul = await measureUpload();
+                ulEl.textContent = ul;
+                setProgress(100);
+
+                setStatus("✅ Test voltooid!", false);
+            } catch (err) {
+                setStatus("❌ Fout: " + err.message, false);
+                console.error(err);
+            }
+
+            startBtn.disabled = false;
+        }
+    </script>
 </body>
 </html>
