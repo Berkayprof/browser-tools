@@ -109,6 +109,7 @@
                 8px 8px 16px var(--shadow-dark),
                 -8px -8px 16px var(--shadow-light);
             border-left: 4px solid var(--accent);
+            display: block;
         }
 
         .tool-card:nth-child(3n+1) { border-left-color: var(--accent); }
@@ -153,11 +154,10 @@
         }
 
         .search-wrapper {
-            width: 115%;
-            max-width: 1000px;
-            margin: 20px auto 60px;
+            width: 100%;
+            max-width: 700px;
+            margin: 30px auto 50px;
             padding: 0 20px;
-            transform: translateX(0%);
         }
 
         #toolSearch {
@@ -231,6 +231,7 @@
             <div class="section-title">🖼 Beeld & media</div>
             <div class="grid">
                 <a class="tool-card" href="color.html">🎨 Colorpicker<span>Kleuren kiezen & kopiëren</span></a>
+                <a class="tool-card" href="color-palette.html">🎨 Color Palette<span>Kleurpaletten genereren</span></a>
                 <a class="tool-card" href="background-remover.html">🖼 Background Remover<span>Verwijder achtergrond</span></a>
                 <a class="tool-card" href="ocr.html">📷 OCR Tool<span>Tekst uit afbeeldingen halen</span></a>
                 <a class="tool-card" href="image-tools.html">🖼️ Image Tools<span>Resize, compress, crop</span></a>
@@ -264,7 +265,11 @@
             <div class="section-title">💻 Ontwikkeling & data</div>
             <div class="grid">
                 <a class="tool-card" href="json-tool.html">🧩 JSON Formatter<span>Formatteren & valideren</span></a>
+                <a class="tool-card" href="regex-playground.html">🔍 Regex Playground<span>Reguliere expressies testen</span></a>
                 <a class="tool-card" href="sandbox.html">🧪 Sandbox Runner<span>HTML/CSS/JS testen</span></a>
+                <a class="tool-card" href="css-minifier-beautifier.html">🎨 CSS Minifier/Beautifier<span>CSS verkleinen & opmaken</span></a>
+                <a class="tool-card" href="html-minifier-beautifier.html">🌐 HTML Minifier/Beautifier<span>HTML verkleinen & opmaken</span></a>
+                <a class="tool-card" href="js-minifier-beautifier.html">⚙️ JS Minifier/Beautifier<span>JavaScript verkleinen & opmaken</span></a>
                 <a class="tool-card" href="file-converter.html">📂 File Converter<span>Bestanden omzetten</span></a>
                 <a class="tool-card" href="file-metadata.html">📂 File Metadata<span>Bekijk EXIF & info</span></a>
                 <a class="tool-card" href="qr-tools.html">🔳 QR Tools<span>QR maken & scannen</span></a>
@@ -278,7 +283,7 @@
         <div class="section">
             <div class="section-title">🌐 Netwerk & diagnostiek</div>
             <div class="grid">
-                <a class="tool-card" href="network-speed-test.html">⚡ Speed Test<span>Download, upload & ping</span></a>
+                <a class="tool-card" href="speed-tester.html">⚡ Speed Test<span>Download, upload & ping</span></a>
                 <a class="tool-card" href="ping-tester.html">⚡ Ping Tester<span>Netwerkvertraging meten</span></a>
                 <a class="tool-card" href="dns-lookup.html">🌐 DNS Lookup<span>DNS-records bekijken</span></a>
                 <a class="tool-card" href="ip-geolocation.html">🌍 IP Geolocation<span>Locatie van IP</span></a>
@@ -381,8 +386,7 @@
                 cards.forEach(card => {
                     const text = card.textContent.toLowerCase();
                     const match = text.includes(query);
-
-                    card.style.display = match ? "flex" : "none";
+                    card.style.display = match ? "block" : "none";
                     if (match) visibleCount++;
                 });
 
