@@ -3,191 +3,353 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Background Remover</title>
+<title>Background Remover – Browser Tools</title>
 
 <style>
 :root {
-    --bg: #f5f7fa;
+    --bg: #e6e9ef;
     --text: #1a1a1a;
-    --card-bg: rgba(255, 255, 255, 0.55);
-    --accent: #4a8bff;
-    --accent-hover: #2f6ef0;
-    --shadow: rgba(0, 0, 0, 0.15);
-    --blur: 18px;
+    --accent: #6a8dff;
+    --accent2: #ff8ac2;
+    --accent-hover: #4f6dff;
+    --shadow-light: rgba(255, 255, 255, 0.9);
+    --shadow-dark: rgba(0, 0, 0, 0.18);
 }
 :root.dark {
-    --bg: #0f1115;
+    --bg: #1f1f24;
     --text: #f1f1f1;
-    --card-bg: rgba(30, 32, 38, 0.55);
-    --accent: #6aa0ff;
-    --accent-hover: #8bb4ff;
-    --shadow: rgba(0, 0, 0, 0.6);
+    --accent: #7aa2ff;
+    --accent2: #ff7ab8;
+    --accent-hover: #9bb8ff;
+    --shadow-light: rgba(255, 255, 255, 0.06);
+    --shadow-dark: rgba(0, 0, 0, 0.6);
 }
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; transition: background 0.3s, color 0.3s; }
+
 body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 40px 20px;
 }
-.box {
-    width: 100%;
-    max-width: 900px;
-    background: var(--card-bg);
-    backdrop-filter: blur(var(--blur));
-    border-radius: 20px;
-    box-shadow: 0 8px 30px var(--shadow);
-    padding: 24px;
-}
-h1 {
-    font-size: 1.8rem;
-    margin-bottom: 6px;
-}
-p.desc {
-    font-size: 0.95rem;
-    margin-bottom: 14px;
-    opacity: 0.9;
-}
-input[type="file"] {
-    margin: 10px 0;
-}
-button {
-    padding: 10px 16px;
-    border-radius: 10px;
+
+.back-btn {
+    align-self: flex-start;
+    margin-bottom: 20px;
+    background: var(--bg);
     border: none;
-    background: var(--accent);
-    color: #fff;
+    padding: 10px 16px;
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+}
+.back-btn:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+
+.theme-toggle {
+    position: fixed; top: 20px; right: 20px;
+    background: var(--bg); border: none; padding: 12px 18px; border-radius: 14px;
+    cursor: pointer; font-size: 1rem; color: var(--text);
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    z-index: 100;
+}
+.theme-toggle:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+
+h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+.subtitle { opacity: 0.6; margin-bottom: 36px; font-size: 0.95rem; }
+
+.container {
+    width: 100%;
+    max-width: 960px;
+    background: var(--bg);
+    border-radius: 28px;
+    padding: 36px;
+    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+}
+
+/* ---- Upload dropzone ---- */
+.dropzone {
+    border: 3px dashed var(--accent);
+    border-radius: 20px;
+    padding: 48px 20px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 24px;
     transition: 0.2s;
+    opacity: 0.75;
 }
-button:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
+.dropzone:hover, .dropzone.drag-over { opacity: 1; box-shadow: 0 0 0 4px rgba(106,141,255,0.2); }
+.dropzone .icon { font-size: 2.8rem; margin-bottom: 10px; }
+.dropzone p { font-size: 0.95rem; }
+.dropzone input { display: none; }
+
+/* ---- Buttons ---- */
+.btn-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+.btn {
+    background: var(--bg);
+    border: none;
+    padding: 13px 26px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
 }
-.preview-area {
+.btn:hover:not(:disabled) { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary { color: var(--accent); }
+.btn.download { color: var(--accent2); }
+
+/* ---- Progress ---- */
+.progress-wrap {
+    display: none;
+    margin-bottom: 24px;
+}
+.progress-label { font-size: 0.85rem; opacity: 0.65; margin-bottom: 6px; }
+.progress-bar-bg {
+    background: var(--bg);
+    border-radius: 99px;
+    height: 10px;
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.3s ease;
+}
+
+/* ---- Preview grid ---- */
+.preview-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 20px;
+    gap: 20px;
 }
-.preview-box {
-    background: rgba(255,255,255,0.8);
-    border-radius: 16px;
-    padding: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+@media (max-width: 600px) { .preview-grid { grid-template-columns: 1fr; } }
+
+.preview-card {
+    background: var(--bg);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
     text-align: center;
 }
-.preview-box img {
-    max-width: 100%;
-    border-radius: 12px;
+.preview-card h3 { font-size: 0.9rem; opacity: 0.7; margin-bottom: 12px; font-weight: 600; }
+
+.img-wrap {
+    border-radius: 14px;
+    overflow: hidden;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* checkerboard for transparency */
+    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+                      linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                      linear-gradient(45deg, transparent 75%, #ccc 75%),
+                      linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    background-color: #e8e8e8;
 }
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--card-bg);
-    backdrop-filter: blur(var(--blur));
-    border: none;
-    padding: 10px 14px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--text);
-    box-shadow: 0 4px 20px var(--shadow);
-    z-index: 1000;
+:root.dark .img-wrap {
+    background-color: #2a2a2e;
+    background-image: linear-gradient(45deg, #3a3a3e 25%, transparent 25%),
+                      linear-gradient(-45deg, #3a3a3e 25%, transparent 25%),
+                      linear-gradient(45deg, transparent 75%, #3a3a3e 75%),
+                      linear-gradient(-45deg, transparent 75%, #3a3a3e 75%);
 }
+.img-wrap img { max-width: 100%; max-height: 340px; display: block; border-radius: 10px; }
+.placeholder { opacity: 0.3; font-size: 2rem; }
+
+/* ---- Info box ---- */
+.info-box {
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-top: 24px;
+    font-size: 0.82rem;
+    opacity: 0.65;
+    line-height: 1.6;
+    text-align: center;
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
 
 <button class="theme-toggle" id="themeToggle">🌗 Thema</button>
+<a class="back-btn" href="index.html">← Terug</a>
 
-<div class="box">
-    <h1>🖼 Background Remover</h1>
-    <p class="desc">Verwijder automatisch de achtergrond van een afbeelding — volledig in je browser.</p>
+<h1>🖼 Background Remover</h1>
+<p class="subtitle">Verwijder automatisch de achtergrond — volledig gratis, in je browser</p>
 
-    <input type="file" id="upload" accept="image/*">
-    <button id="processBtn">Achtergrond verwijderen</button>
-    <button id="downloadBtn" disabled>Download resultaat</button>
+<div class="container">
 
-    <div class="preview-area">
-        <div class="preview-box">
+    <!-- Dropzone -->
+    <div class="dropzone" id="dropzone">
+        <div class="icon">🖼️</div>
+        <p><strong>Klik om een afbeelding te kiezen</strong> of sleep hem hiernaartoe</p>
+        <p style="opacity:0.5;font-size:0.82rem;margin-top:4px">JPG, PNG, WebP ondersteund</p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-row">
+        <button class="btn primary" id="processBtn" disabled>✨ Verwijder achtergrond</button>
+        <button class="btn download" id="downloadBtn" disabled>⬇️ Download PNG</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-label" id="progressLabel">Model laden…</div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Previews -->
+    <div class="preview-grid">
+        <div class="preview-card">
             <h3>Origineel</h3>
-            <img id="originalImg" src="">
+            <div class="img-wrap">
+                <img id="originalImg" src="" style="display:none">
+                <span class="placeholder" id="origPlaceholder">📷</span>
+            </div>
         </div>
-        <div class="preview-box">
+        <div class="preview-card">
             <h3>Zonder achtergrond</h3>
-            <img id="resultImg" src="">
+            <div class="img-wrap">
+                <img id="resultImg" src="" style="display:none">
+                <span class="placeholder" id="resultPlaceholder">✨</span>
+            </div>
         </div>
+    </div>
+
+    <div class="info-box">
+        Gebruikt <strong>@imgly/background-removal</strong> — een open-source AI-model dat volledig in je browser draait. Je afbeelding wordt <strong>nooit geüpload</strong> naar een server. Het eerste gebruik downloadt het model (~40 MB).
     </div>
 </div>
 
-<!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+<!-- @imgly/background-removal via ESM CDN -->
+<script type="module">
+    import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm';
 
-<!-- U²-Net model (open-source remove.bg-lite) -->
-<script src="https://cdn.jsdelivr.net/npm/remove-bg-lite@1.0.3/dist/removebg.min.js"></script>
+    // ---- Theme ----
+    const root = document.documentElement;
+    if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+    document.getElementById("themeToggle").addEventListener("click", () => {
+        root.classList.toggle("dark");
+        localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+    });
 
-<script>
-const root = document.documentElement;
-const toggleBtn = document.getElementById("themeToggle");
-if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
-toggleBtn.addEventListener("click", () => {
-    root.classList.toggle("dark");
-    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
-});
+    // ---- Elements ----
+    const dropzone    = document.getElementById("dropzone");
+    const fileInput   = document.getElementById("fileInput");
+    const processBtn  = document.getElementById("processBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const originalImg = document.getElementById("originalImg");
+    const resultImg   = document.getElementById("resultImg");
+    const origPH      = document.getElementById("origPlaceholder");
+    const resultPH    = document.getElementById("resultPlaceholder");
+    const progressWrap = document.getElementById("progressWrap");
+    const progressFill = document.getElementById("progressFill");
+    const progressLabel = document.getElementById("progressLabel");
 
-const upload = document.getElementById("upload");
-const originalImg = document.getElementById("originalImg");
-const resultImg = document.getElementById("resultImg");
-const processBtn = document.getElementById("processBtn");
-const downloadBtn = document.getElementById("downloadBtn");
+    let currentFile = null;
+    let resultBlob  = null;
 
-let uploadedImage = null;
-
-upload.addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-        uploadedImage = reader.result;
-        originalImg.src = uploadedImage;
-    };
-    reader.readAsDataURL(file);
-});
-
-processBtn.addEventListener("click", async () => {
-    if (!uploadedImage) {
-        alert("Upload eerst een afbeelding.");
-        return;
+    // ---- File handling ----
+    function loadFile(file) {
+        if (!file || !file.type.startsWith("image/")) return;
+        currentFile = file;
+        const url = URL.createObjectURL(file);
+        originalImg.src = url;
+        originalImg.style.display = "block";
+        origPH.style.display = "none";
+        resultImg.style.display = "none";
+        resultPH.style.display = "inline";
+        resultPH.textContent = "✨";
+        downloadBtn.disabled = true;
+        processBtn.disabled = false;
+        resultBlob = null;
     }
 
-    processBtn.textContent = "Bezig...";
-    processBtn.disabled = true;
+    dropzone.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", e => loadFile(e.target.files[0]));
 
-    const output = await removeBackground(uploadedImage);
-    resultImg.src = output;
+    dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("drag-over"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag-over"));
+    dropzone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropzone.classList.remove("drag-over");
+        loadFile(e.dataTransfer.files[0]);
+    });
 
-    downloadBtn.disabled = false;
-    processBtn.textContent = "Achtergrond verwijderen";
-    processBtn.disabled = false;
-});
+    // ---- Process ----
+    processBtn.addEventListener("click", async () => {
+        if (!currentFile) return;
 
-downloadBtn.addEventListener("click", () => {
-    const link = document.createElement("a");
-    link.href = resultImg.src;
-    link.download = "zonder-achtergrond.png";
-    link.click();
-});
+        processBtn.disabled = true;
+        downloadBtn.disabled = true;
+        progressWrap.style.display = "block";
+        resultPH.textContent = "⏳";
+        resultImg.style.display = "none";
+        resultPH.style.display = "inline";
+
+        try {
+            const config = {
+                progress: (key, current, total) => {
+                    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                    progressFill.style.width = pct + "%";
+                    if (key.includes("fetch") || key.includes("download")) {
+                        progressLabel.textContent = `Model downloaden… ${pct}%`;
+                    } else {
+                        progressLabel.textContent = `Achtergrond verwijderen… ${pct}%`;
+                    }
+                }
+            };
+
+            const blob = await removeBackground(currentFile, config);
+            resultBlob = blob;
+
+            const url = URL.createObjectURL(blob);
+            resultImg.src = url;
+            resultImg.style.display = "block";
+            resultPH.style.display = "none";
+
+            progressLabel.textContent = "✅ Klaar!";
+            progressFill.style.width = "100%";
+            downloadBtn.disabled = false;
+
+        } catch (err) {
+            progressLabel.textContent = "❌ Fout: " + err.message;
+            console.error(err);
+            resultPH.textContent = "❌";
+        }
+
+        processBtn.disabled = false;
+    });
+
+    // ---- Download ----
+    downloadBtn.addEventListener("click", () => {
+        if (!resultBlob) return;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(resultBlob);
+        a.download = "zonder-achtergrond.png";
+        a.click();
+    });
 </script>
 
 </body>
