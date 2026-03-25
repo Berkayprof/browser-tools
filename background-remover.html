@@ -11,7 +11,6 @@
     --text: #1a1a1a;
     --accent: #6a8dff;
     --accent2: #ff8ac2;
-    --accent-hover: #4f6dff;
     --shadow-light: rgba(255, 255, 255, 0.9);
     --shadow-dark: rgba(0, 0, 0, 0.18);
 }
@@ -20,7 +19,6 @@
     --text: #f1f1f1;
     --accent: #7aa2ff;
     --accent2: #ff7ab8;
-    --accent-hover: #9bb8ff;
     --shadow-light: rgba(255, 255, 255, 0.06);
     --shadow-dark: rgba(0, 0, 0, 0.6);
 }
@@ -72,7 +70,6 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
 }
 
-/* ---- Upload dropzone ---- */
 .dropzone {
     border: 3px dashed var(--accent);
     border-radius: 20px;
@@ -80,15 +77,16 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     text-align: center;
     cursor: pointer;
     margin-bottom: 24px;
-    transition: 0.2s;
     opacity: 0.75;
+    transition: opacity 0.2s, box-shadow 0.2s;
+    user-select: none;
 }
-.dropzone:hover, .dropzone.drag-over { opacity: 1; box-shadow: 0 0 0 4px rgba(106,141,255,0.2); }
-.dropzone .icon { font-size: 2.8rem; margin-bottom: 10px; }
-.dropzone p { font-size: 0.95rem; }
-.dropzone input { display: none; }
+.dropzone:hover, .dropzone.drag-over {
+    opacity: 1;
+    box-shadow: 0 0 0 4px rgba(106,141,255,0.2);
+}
+.dropzone .dz-icon { font-size: 2.8rem; margin-bottom: 10px; }
 
-/* ---- Buttons ---- */
 .btn-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
 .btn {
     background: var(--bg);
@@ -103,14 +101,9 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
 }
 .btn:hover:not(:disabled) { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.primary { color: var(--accent); }
 .btn.download { color: var(--accent2); }
 
-/* ---- Progress ---- */
-.progress-wrap {
-    display: none;
-    margin-bottom: 24px;
-}
+.progress-wrap { display: none; margin-bottom: 24px; }
 .progress-label { font-size: 0.85rem; opacity: 0.65; margin-bottom: 6px; }
 .progress-bar-bg {
     background: var(--bg);
@@ -127,7 +120,6 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     transition: width 0.3s ease;
 }
 
-/* ---- Preview grid ---- */
 .preview-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -151,26 +143,26 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     display: flex;
     align-items: center;
     justify-content: center;
-    /* checkerboard for transparency */
-    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
-                      linear-gradient(-45deg, #ccc 25%, transparent 25%),
-                      linear-gradient(45deg, transparent 75%, #ccc 75%),
-                      linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-image:
+        linear-gradient(45deg, #ccc 25%, transparent 25%),
+        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ccc 75%),
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     background-color: #e8e8e8;
 }
 :root.dark .img-wrap {
     background-color: #2a2a2e;
-    background-image: linear-gradient(45deg, #3a3a3e 25%, transparent 25%),
-                      linear-gradient(-45deg, #3a3a3e 25%, transparent 25%),
-                      linear-gradient(45deg, transparent 75%, #3a3a3e 75%),
-                      linear-gradient(-45deg, transparent 75%, #3a3a3e 75%);
+    background-image:
+        linear-gradient(45deg, #3a3a3e 25%, transparent 25%),
+        linear-gradient(-45deg, #3a3a3e 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #3a3a3e 75%),
+        linear-gradient(-45deg, transparent 75%, #3a3a3e 75%);
 }
-.img-wrap img { max-width: 100%; max-height: 340px; display: block; border-radius: 10px; }
+.img-wrap img { max-width: 100%; max-height: 340px; display: none; border-radius: 10px; }
 .placeholder { opacity: 0.3; font-size: 2rem; }
 
-/* ---- Info box ---- */
 .info-box {
     background: var(--bg);
     border-radius: 16px;
@@ -182,9 +174,6 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     text-align: center;
     box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner { display: inline-block; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
@@ -195,161 +184,225 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
 <h1>🖼 Background Remover</h1>
 <p class="subtitle">Verwijder automatisch de achtergrond — volledig gratis, in je browser</p>
 
+<!-- Verborgen file input — BUITEN de dropzone div -->
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+
 <div class="container">
 
-    <!-- Dropzone -->
     <div class="dropzone" id="dropzone">
-        <div class="icon">🖼️</div>
-        <p><strong>Klik om een afbeelding te kiezen</strong> of sleep hem hiernaartoe</p>
+        <div class="dz-icon">🖼️</div>
+        <p id="dzText"><strong>Klik om een afbeelding te kiezen</strong> of sleep hem hiernaartoe</p>
         <p style="opacity:0.5;font-size:0.82rem;margin-top:4px">JPG, PNG, WebP ondersteund</p>
-        <input type="file" id="fileInput" accept="image/*">
     </div>
 
-    <!-- Buttons -->
     <div class="btn-row">
-        <button class="btn primary" id="processBtn" disabled>✨ Verwijder achtergrond</button>
+        <button class="btn" id="processBtn" disabled>✨ Verwijder achtergrond</button>
         <button class="btn download" id="downloadBtn" disabled>⬇️ Download PNG</button>
     </div>
 
-    <!-- Progress -->
     <div class="progress-wrap" id="progressWrap">
-        <div class="progress-label" id="progressLabel">Model laden…</div>
+        <div class="progress-label" id="progressLabel">Laden…</div>
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressFill"></div>
         </div>
     </div>
 
-    <!-- Previews -->
     <div class="preview-grid">
         <div class="preview-card">
             <h3>Origineel</h3>
             <div class="img-wrap">
-                <img id="originalImg" src="" style="display:none">
-                <span class="placeholder" id="origPlaceholder">📷</span>
+                <img id="originalImg" alt="origineel">
+                <span class="placeholder" id="origPH">📷</span>
             </div>
         </div>
         <div class="preview-card">
             <h3>Zonder achtergrond</h3>
             <div class="img-wrap">
-                <img id="resultImg" src="" style="display:none">
-                <span class="placeholder" id="resultPlaceholder">✨</span>
+                <img id="resultImg" alt="resultaat">
+                <span class="placeholder" id="resultPH">✨</span>
             </div>
         </div>
     </div>
 
     <div class="info-box">
-        Gebruikt <strong>@imgly/background-removal</strong> — een open-source AI-model dat volledig in je browser draait. Je afbeelding wordt <strong>nooit geüpload</strong> naar een server. Het eerste gebruik downloadt het model (~40 MB).
+        Gebruikt <strong>@imgly/background-removal</strong> — open-source AI volledig in je browser.
+        Je afbeelding wordt <strong>nooit geüpload</strong>. Eerste gebruik downloadt het model (~40 MB).
     </div>
 </div>
 
-<!-- @imgly/background-removal via ESM CDN -->
-<script type="module">
-    import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm';
+<script>
+// ---- Theme ----
+const root = document.documentElement;
+if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
+document.getElementById("themeToggle").addEventListener("click", () => {
+    root.classList.toggle("dark");
+    localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+});
 
-    // ---- Theme ----
-    const root = document.documentElement;
-    if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
-    document.getElementById("themeToggle").addEventListener("click", () => {
-        root.classList.toggle("dark");
-        localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
-    });
+// ---- Elements ----
+const dropzone      = document.getElementById("dropzone");
+const fileInput     = document.getElementById("fileInput");
+const processBtn    = document.getElementById("processBtn");
+const downloadBtn   = document.getElementById("downloadBtn");
+const originalImg   = document.getElementById("originalImg");
+const resultImg     = document.getElementById("resultImg");
+const origPH        = document.getElementById("origPH");
+const resultPH      = document.getElementById("resultPH");
+const progressWrap  = document.getElementById("progressWrap");
+const progressFill  = document.getElementById("progressFill");
+const progressLabel = document.getElementById("progressLabel");
+const dzText        = document.getElementById("dzText");
 
-    // ---- Elements ----
-    const dropzone    = document.getElementById("dropzone");
-    const fileInput   = document.getElementById("fileInput");
-    const processBtn  = document.getElementById("processBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const originalImg = document.getElementById("originalImg");
-    const resultImg   = document.getElementById("resultImg");
-    const origPH      = document.getElementById("origPlaceholder");
-    const resultPH    = document.getElementById("resultPlaceholder");
-    const progressWrap = document.getElementById("progressWrap");
-    const progressFill = document.getElementById("progressFill");
-    const progressLabel = document.getElementById("progressLabel");
+let currentFile      = null;
+let resultBlob       = null;
+let removeBackground = null;
 
-    let currentFile = null;
-    let resultBlob  = null;
+// ---- Load library on demand ----
+async function ensureLibrary() {
+    if (removeBackground) return true;
+    try {
+        progressWrap.style.display = "block";
+        progressLabel.textContent = "Bibliotheek laden…";
+        progressFill.style.width = "5%";
+        // Use unpkg — jsdelivr has issues with this package's ESM lodash re-export
+        const mod = await import("https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.mjs");
+        removeBackground = mod.removeBackground;
+        return true;
+    } catch (err) {
+        progressLabel.textContent = "❌ Bibliotheek laden mislukt: " + err.message;
+        console.error("imgly load error:", err);
+        return false;
+    }
+}
 
-    // ---- File handling ----
-    function loadFile(file) {
-        if (!file || !file.type.startsWith("image/")) return;
-        currentFile = file;
-        const url = URL.createObjectURL(file);
-        originalImg.src = url;
-        originalImg.style.display = "block";
-        origPH.style.display = "none";
-        resultImg.style.display = "none";
-        resultPH.style.display = "inline";
-        resultPH.textContent = "✨";
-        downloadBtn.disabled = true;
-        processBtn.disabled = false;
-        resultBlob = null;
+// ---- Show image in preview ----
+function loadFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+        alert("Kies een geldig afbeeldingsbestand (JPG, PNG, WebP).");
+        return;
     }
 
-    dropzone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", e => loadFile(e.target.files[0]));
+    currentFile = file;
+    resultBlob  = null;
 
-    dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("drag-over"); });
-    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag-over"));
-    dropzone.addEventListener("drop", e => {
+    // Show original
+    const url = URL.createObjectURL(file);
+    originalImg.src = url;
+    originalImg.style.display = "block";
+    origPH.style.display = "none";
+
+    // Reset result
+    resultImg.style.display = "none";
+    resultImg.src = "";
+    resultPH.style.display = "inline";
+    resultPH.textContent = "✨";
+
+    // Update UI
+    dzText.innerHTML = `<strong>${file.name}</strong> geladen ✓`;
+    processBtn.disabled = false;
+    downloadBtn.disabled = true;
+
+    // Hide progress if visible
+    progressWrap.style.display = "none";
+    progressFill.style.width = "0%";
+}
+
+// ---- Click on dropzone → open file picker ----
+dropzone.addEventListener("click", (e) => {
+    e.preventDefault();
+    fileInput.value = "";
+    fileInput.click();
+});
+
+// ---- File input change ----
+fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files[0]) {
+        loadFile(fileInput.files[0]);
+    }
+});
+
+// ---- Drag & drop ----
+["dragenter", "dragover"].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add("drag-over");
+    });
+});
+["dragleave", "dragend"].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         dropzone.classList.remove("drag-over");
-        loadFile(e.dataTransfer.files[0]);
     });
+});
+dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.classList.remove("drag-over");
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) loadFile(file);
+});
 
-    // ---- Process ----
-    processBtn.addEventListener("click", async () => {
-        if (!currentFile) return;
+// ---- Process button ----
+processBtn.addEventListener("click", async () => {
+    if (!currentFile) return;
 
-        processBtn.disabled = true;
-        downloadBtn.disabled = true;
-        progressWrap.style.display = "block";
-        resultPH.textContent = "⏳";
-        resultImg.style.display = "none";
-        resultPH.style.display = "inline";
+    processBtn.disabled = true;
+    downloadBtn.disabled = true;
+    resultImg.style.display = "none";
+    resultPH.style.display = "inline";
+    resultPH.textContent = "⏳";
+    progressWrap.style.display = "block";
+    progressFill.style.width = "0%";
 
-        try {
-            const config = {
-                progress: (key, current, total) => {
-                    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-                    progressFill.style.width = pct + "%";
-                    if (key.includes("fetch") || key.includes("download")) {
-                        progressLabel.textContent = `Model downloaden… ${pct}%`;
-                    } else {
-                        progressLabel.textContent = `Achtergrond verwijderen… ${pct}%`;
-                    }
-                }
-            };
-
-            const blob = await removeBackground(currentFile, config);
-            resultBlob = blob;
-
-            const url = URL.createObjectURL(blob);
-            resultImg.src = url;
-            resultImg.style.display = "block";
-            resultPH.style.display = "none";
-
-            progressLabel.textContent = "✅ Klaar!";
-            progressFill.style.width = "100%";
-            downloadBtn.disabled = false;
-
-        } catch (err) {
-            progressLabel.textContent = "❌ Fout: " + err.message;
-            console.error(err);
-            resultPH.textContent = "❌";
-        }
-
+    const ok = await ensureLibrary();
+    if (!ok) {
         processBtn.disabled = false;
-    });
+        return;
+    }
 
-    // ---- Download ----
-    downloadBtn.addEventListener("click", () => {
-        if (!resultBlob) return;
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(resultBlob);
-        a.download = "zonder-achtergrond.png";
-        a.click();
-    });
+    try {
+        const blob = await removeBackground(currentFile, {
+            progress: (key, current, total) => {
+                const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                progressFill.style.width = pct + "%";
+                if (key && (key.includes("fetch") || key.includes("download") || key.includes("model"))) {
+                    progressLabel.textContent = `Model downloaden… ${pct}%`;
+                } else {
+                    progressLabel.textContent = `Achtergrond verwijderen… ${pct}%`;
+                }
+            }
+        });
+
+        resultBlob = blob;
+        const url = URL.createObjectURL(blob);
+        resultImg.src = url;
+        resultImg.style.display = "block";
+        resultPH.style.display = "none";
+
+        progressLabel.textContent = "✅ Klaar!";
+        progressFill.style.width = "100%";
+        downloadBtn.disabled = false;
+
+    } catch (err) {
+        progressLabel.textContent = "❌ Fout: " + err.message;
+        resultPH.textContent = "❌";
+        console.error("removeBackground error:", err);
+    }
+
+    processBtn.disabled = false;
+});
+
+// ---- Download ----
+downloadBtn.addEventListener("click", () => {
+    if (!resultBlob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(resultBlob);
+    a.download = "zonder-achtergrond.png";
+    a.click();
+});
 </script>
 
 </body>
