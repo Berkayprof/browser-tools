@@ -4,177 +4,56 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Background Remover – Browser Tools</title>
-
 <style>
 :root {
-    --bg: #e6e9ef;
-    --text: #1a1a1a;
-    --accent: #6a8dff;
-    --accent2: #ff8ac2;
-    --shadow-light: rgba(255, 255, 255, 0.9);
-    --shadow-dark: rgba(0, 0, 0, 0.18);
+    --bg: #e6e9ef; --text: #1a1a1a; --accent: #6a8dff; --accent2: #ff8ac2;
+    --shadow-light: rgba(255,255,255,0.9); --shadow-dark: rgba(0,0,0,0.18);
 }
 :root.dark {
-    --bg: #1f1f24;
-    --text: #f1f1f1;
-    --accent: #7aa2ff;
-    --accent2: #ff7ab8;
-    --shadow-light: rgba(255, 255, 255, 0.06);
-    --shadow-dark: rgba(0, 0, 0, 0.6);
+    --bg: #1f1f24; --text: #f1f1f1; --accent: #7aa2ff; --accent2: #ff7ab8;
+    --shadow-light: rgba(255,255,255,0.06); --shadow-dark: rgba(0,0,0,0.6);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; transition: background 0.3s, color 0.3s; }
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-}
-
-.back-btn {
-    align-self: flex-start;
-    margin-bottom: 20px;
-    background: var(--bg);
-    border: none;
-    padding: 10px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    color: var(--text);
-    text-decoration: none;
-    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-}
-.back-btn:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
-
-.theme-toggle {
-    position: fixed; top: 20px; right: 20px;
-    background: var(--bg); border: none; padding: 12px 18px; border-radius: 14px;
-    cursor: pointer; font-size: 1rem; color: var(--text);
-    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-    z-index: 100;
-}
-.theme-toggle:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
-
-h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
-.subtitle { opacity: 0.6; margin-bottom: 36px; font-size: 0.95rem; }
-
-.container {
-    width: 100%;
-    max-width: 960px;
-    background: var(--bg);
-    border-radius: 28px;
-    padding: 36px;
-    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
-}
-
-.dropzone {
-    border: 3px dashed var(--accent);
-    border-radius: 20px;
-    padding: 48px 20px;
-    text-align: center;
-    cursor: pointer;
-    margin-bottom: 24px;
-    opacity: 0.75;
-    transition: opacity 0.2s, box-shadow 0.2s;
-    user-select: none;
-}
-.dropzone:hover, .dropzone.drag-over {
-    opacity: 1;
-    box-shadow: 0 0 0 4px rgba(106,141,255,0.2);
-}
-.dropzone .dz-icon { font-size: 2.8rem; margin-bottom: 10px; }
-
-.btn-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
-.btn {
-    background: var(--bg);
-    border: none;
-    padding: 13px 26px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--accent);
-    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-}
-.btn:hover:not(:disabled) { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.download { color: var(--accent2); }
-
-.progress-wrap { display: none; margin-bottom: 24px; }
-.progress-label { font-size: 0.85rem; opacity: 0.65; margin-bottom: 6px; }
-.progress-bar-bg {
-    background: var(--bg);
-    border-radius: 99px;
-    height: 10px;
-    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-    overflow: hidden;
-}
-.progress-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 99px;
-    transition: width 0.3s ease;
-}
-
-.preview-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-@media (max-width: 600px) { .preview-grid { grid-template-columns: 1fr; } }
-
-.preview-card {
-    background: var(--bg);
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
-    text-align: center;
-}
-.preview-card h3 { font-size: 0.9rem; opacity: 0.7; margin-bottom: 12px; font-weight: 600; }
-
-.img-wrap {
-    border-radius: 14px;
-    overflow: hidden;
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-image:
-        linear-gradient(45deg, #ccc 25%, transparent 25%),
-        linear-gradient(-45deg, #ccc 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #ccc 75%),
-        linear-gradient(-45deg, transparent 75%, #ccc 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    background-color: #e8e8e8;
-}
-:root.dark .img-wrap {
-    background-color: #2a2a2e;
-    background-image:
-        linear-gradient(45deg, #3a3a3e 25%, transparent 25%),
-        linear-gradient(-45deg, #3a3a3e 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #3a3a3e 75%),
-        linear-gradient(-45deg, transparent 75%, #3a3a3e 75%);
-}
-.img-wrap img { max-width: 100%; max-height: 340px; display: none; border-radius: 10px; }
-.placeholder { opacity: 0.3; font-size: 2rem; }
-
-.info-box {
-    background: var(--bg);
-    border-radius: 16px;
-    padding: 14px 18px;
-    margin-top: 24px;
-    font-size: 0.82rem;
-    opacity: 0.65;
-    line-height: 1.6;
-    text-align: center;
-    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-}
+* { margin:0; padding:0; box-sizing:border-box; font-family:"Segoe UI",sans-serif; transition:background .3s,color .3s; }
+body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:40px 20px; }
+.back-btn { align-self:flex-start; margin-bottom:20px; background:var(--bg); border:none; padding:10px 16px; border-radius:12px; cursor:pointer; font-size:.95rem; color:var(--text); text-decoration:none; box-shadow:6px 6px 12px var(--shadow-dark),-6px -6px 12px var(--shadow-light); }
+.back-btn:hover { box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); }
+.theme-toggle { position:fixed; top:20px; right:20px; background:var(--bg); border:none; padding:12px 18px; border-radius:14px; cursor:pointer; font-size:1rem; color:var(--text); box-shadow:6px 6px 12px var(--shadow-dark),-6px -6px 12px var(--shadow-light); z-index:100; }
+.theme-toggle:hover { box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); }
+h1 { font-size:2rem; font-weight:800; margin-bottom:6px; }
+.subtitle { opacity:.6; margin-bottom:36px; font-size:.95rem; }
+.container { width:100%; max-width:960px; background:var(--bg); border-radius:28px; padding:36px; box-shadow:12px 12px 24px var(--shadow-dark),-12px -12px 24px var(--shadow-light); }
+.dropzone { border:3px dashed var(--accent); border-radius:20px; padding:48px 20px; text-align:center; cursor:pointer; margin-bottom:24px; opacity:.75; transition:opacity .2s,box-shadow .2s; user-select:none; }
+.dropzone:hover,.dropzone.drag-over { opacity:1; box-shadow:0 0 0 4px rgba(106,141,255,.2); }
+.dz-icon { font-size:2.8rem; margin-bottom:10px; }
+.btn-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px; }
+.btn { background:var(--bg); border:none; padding:13px 26px; border-radius:14px; cursor:pointer; font-size:.95rem; font-weight:600; color:var(--accent); box-shadow:6px 6px 12px var(--shadow-dark),-6px -6px 12px var(--shadow-light); }
+.btn:hover:not(:disabled) { box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.btn.download { color:var(--accent2); }
+.progress-wrap { display:none; margin-bottom:24px; }
+.progress-label { font-size:.85rem; opacity:.65; margin-bottom:6px; }
+.progress-bar-bg { background:var(--bg); border-radius:99px; height:10px; box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); overflow:hidden; }
+.progress-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width .3s ease; }
+.preview-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:600px){.preview-grid{grid-template-columns:1fr;}}
+.preview-card { background:var(--bg); border-radius:20px; padding:16px; box-shadow:8px 8px 16px var(--shadow-dark),-8px -8px 16px var(--shadow-light); text-align:center; }
+.preview-card h3 { font-size:.9rem; opacity:.7; margin-bottom:12px; font-weight:600; }
+.img-wrap { border-radius:14px; overflow:hidden; min-height:120px; display:flex; align-items:center; justify-content:center; background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; background-color:#e8e8e8; }
+:root.dark .img-wrap { background-color:#2a2a2e; background-image:linear-gradient(45deg,#3a3a3e 25%,transparent 25%),linear-gradient(-45deg,#3a3a3e 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3a3e 75%),linear-gradient(-45deg,transparent 75%,#3a3a3e 75%); }
+.img-wrap img { max-width:100%; max-height:340px; display:none; border-radius:10px; }
+.placeholder { opacity:.3; font-size:2rem; }
+.info-box { background:var(--bg); border-radius:16px; padding:14px 18px; margin-top:24px; font-size:.82rem; opacity:.65; line-height:1.6; text-align:center; box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); }
 </style>
+
+<!-- importmap: maps bare 'lodash' specifier that @imgly uses internally -->
+<script type="importmap">
+{
+  "imports": {
+    "lodash": "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/lodash.min.js",
+    "lodash/": "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/"
+  }
+}
+</script>
 </head>
 <body>
 
@@ -184,15 +63,13 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
 <h1>🖼 Background Remover</h1>
 <p class="subtitle">Verwijder automatisch de achtergrond — volledig gratis, in je browser</p>
 
-<!-- Verborgen file input — BUITEN de dropzone div -->
 <input type="file" id="fileInput" accept="image/*" style="display:none">
 
 <div class="container">
-
     <div class="dropzone" id="dropzone">
         <div class="dz-icon">🖼️</div>
         <p id="dzText"><strong>Klik om een afbeelding te kiezen</strong> of sleep hem hiernaartoe</p>
-        <p style="opacity:0.5;font-size:0.82rem;margin-top:4px">JPG, PNG, WebP ondersteund</p>
+        <p style="opacity:.5;font-size:.82rem;margin-top:4px">JPG, PNG, WebP ondersteund</p>
     </div>
 
     <div class="btn-row">
@@ -202,9 +79,7 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
 
     <div class="progress-wrap" id="progressWrap">
         <div class="progress-label" id="progressLabel">Laden…</div>
-        <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressFill"></div>
-        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
     </div>
 
     <div class="preview-grid">
@@ -230,8 +105,8 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
     </div>
 </div>
 
-<script>
-// ---- Theme ----
+<script type="module">
+// Theme
 const root = document.documentElement;
 if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
 document.getElementById("themeToggle").addEventListener("click", () => {
@@ -239,7 +114,7 @@ document.getElementById("themeToggle").addEventListener("click", () => {
     localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
 });
 
-// ---- Elements ----
+// Elements
 const dropzone      = document.getElementById("dropzone");
 const fileInput     = document.getElementById("fileInput");
 const processBtn    = document.getElementById("processBtn");
@@ -257,98 +132,59 @@ let currentFile      = null;
 let resultBlob       = null;
 let removeBackground = null;
 
-// ---- Load library on demand ----
 async function ensureLibrary() {
     if (removeBackground) return true;
     try {
         progressWrap.style.display = "block";
         progressLabel.textContent = "Bibliotheek laden…";
         progressFill.style.width = "5%";
-        // Use unpkg — jsdelivr has issues with this package's ESM lodash re-export
         const mod = await import("https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.mjs");
         removeBackground = mod.removeBackground;
+        progressWrap.style.display = "none";
         return true;
     } catch (err) {
-        progressLabel.textContent = "❌ Bibliotheek laden mislukt: " + err.message;
+        progressLabel.textContent = "❌ Laden mislukt: " + err.message;
         console.error("imgly load error:", err);
         return false;
     }
 }
 
-// ---- Show image in preview ----
 function loadFile(file) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-        alert("Kies een geldig afbeeldingsbestand (JPG, PNG, WebP).");
-        return;
-    }
-
+    if (!file.type.startsWith("image/")) { alert("Kies een geldig afbeeldingsbestand."); return; }
     currentFile = file;
-    resultBlob  = null;
+    resultBlob = null;
 
-    // Show original
-    const url = URL.createObjectURL(file);
-    originalImg.src = url;
+    originalImg.src = URL.createObjectURL(file);
     originalImg.style.display = "block";
     origPH.style.display = "none";
-
-    // Reset result
     resultImg.style.display = "none";
     resultImg.src = "";
     resultPH.style.display = "inline";
     resultPH.textContent = "✨";
-
-    // Update UI
     dzText.innerHTML = `<strong>${file.name}</strong> geladen ✓`;
     processBtn.disabled = false;
     downloadBtn.disabled = true;
-
-    // Hide progress if visible
     progressWrap.style.display = "none";
     progressFill.style.width = "0%";
 }
 
-// ---- Click on dropzone → open file picker ----
-dropzone.addEventListener("click", (e) => {
-    e.preventDefault();
-    fileInput.value = "";
-    fileInput.click();
-});
+// Click dropzone → open picker
+dropzone.addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
 
-// ---- File input change ----
-fileInput.addEventListener("change", () => {
-    if (fileInput.files && fileInput.files[0]) {
-        loadFile(fileInput.files[0]);
-    }
-});
-
-// ---- Drag & drop ----
-["dragenter", "dragover"].forEach(evt => {
-    dropzone.addEventListener(evt, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add("drag-over");
-    });
-});
-["dragleave", "dragend"].forEach(evt => {
-    dropzone.addEventListener(evt, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove("drag-over");
-    });
-});
-dropzone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+// Drag & drop
+["dragenter","dragover"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.add("drag-over"); }));
+["dragleave","dragend"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.remove("drag-over"); }));
+dropzone.addEventListener("drop", ev => {
+    ev.preventDefault(); ev.stopPropagation();
     dropzone.classList.remove("drag-over");
-    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) loadFile(file);
+    if (ev.dataTransfer?.files[0]) loadFile(ev.dataTransfer.files[0]);
 });
 
-// ---- Process button ----
+// Process
 processBtn.addEventListener("click", async () => {
     if (!currentFile) return;
-
     processBtn.disabled = true;
     downloadBtn.disabled = true;
     resultImg.style.display = "none";
@@ -357,45 +193,34 @@ processBtn.addEventListener("click", async () => {
     progressWrap.style.display = "block";
     progressFill.style.width = "0%";
 
-    const ok = await ensureLibrary();
-    if (!ok) {
-        processBtn.disabled = false;
-        return;
-    }
+    if (!await ensureLibrary()) { processBtn.disabled = false; return; }
 
     try {
         const blob = await removeBackground(currentFile, {
             progress: (key, current, total) => {
-                const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                const pct = total > 0 ? Math.round(current / total * 100) : 0;
                 progressFill.style.width = pct + "%";
-                if (key && (key.includes("fetch") || key.includes("download") || key.includes("model"))) {
-                    progressLabel.textContent = `Model downloaden… ${pct}%`;
-                } else {
-                    progressLabel.textContent = `Achtergrond verwijderen… ${pct}%`;
-                }
+                progressLabel.textContent = (key?.includes("fetch") || key?.includes("model"))
+                    ? `Model downloaden… ${pct}%`
+                    : `Achtergrond verwijderen… ${pct}%`;
             }
         });
-
         resultBlob = blob;
-        const url = URL.createObjectURL(blob);
-        resultImg.src = url;
+        resultImg.src = URL.createObjectURL(blob);
         resultImg.style.display = "block";
         resultPH.style.display = "none";
-
         progressLabel.textContent = "✅ Klaar!";
         progressFill.style.width = "100%";
         downloadBtn.disabled = false;
-
     } catch (err) {
         progressLabel.textContent = "❌ Fout: " + err.message;
         resultPH.textContent = "❌";
-        console.error("removeBackground error:", err);
+        console.error(err);
     }
-
     processBtn.disabled = false;
 });
 
-// ---- Download ----
+// Download
 downloadBtn.addEventListener("click", () => {
     if (!resultBlob) return;
     const a = document.createElement("a");
@@ -404,6 +229,5 @@ downloadBtn.addEventListener("click", () => {
     a.click();
 });
 </script>
-
 </body>
 </html>
