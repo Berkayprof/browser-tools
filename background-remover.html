@@ -33,27 +33,20 @@ h1 { font-size:2rem; font-weight:800; margin-bottom:6px; }
 .progress-wrap { display:none; margin-bottom:24px; }
 .progress-label { font-size:.85rem; opacity:.65; margin-bottom:6px; }
 .progress-bar-bg { background:var(--bg); border-radius:99px; height:10px; box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); overflow:hidden; }
-.progress-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width .3s ease; }
+.progress-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width .4s ease; }
 .preview-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
 @media(max-width:600px){.preview-grid{grid-template-columns:1fr;}}
 .preview-card { background:var(--bg); border-radius:20px; padding:16px; box-shadow:8px 8px 16px var(--shadow-dark),-8px -8px 16px var(--shadow-light); text-align:center; }
 .preview-card h3 { font-size:.9rem; opacity:.7; margin-bottom:12px; font-weight:600; }
-.img-wrap { border-radius:14px; overflow:hidden; min-height:120px; display:flex; align-items:center; justify-content:center; background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; background-color:#e8e8e8; }
-:root.dark .img-wrap { background-color:#2a2a2e; background-image:linear-gradient(45deg,#3a3a3e 25%,transparent 25%),linear-gradient(-45deg,#3a3a3e 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3a3e 75%),linear-gradient(-45deg,transparent 75%,#3a3a3e 75%); }
+.img-wrap { border-radius:14px; overflow:hidden; min-height:120px; display:flex; align-items:center; justify-content:center;
+    background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);
+    background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; background-color:#e8e8e8; }
+:root.dark .img-wrap { background-color:#2a2a2e;
+    background-image:linear-gradient(45deg,#3a3a3e 25%,transparent 25%),linear-gradient(-45deg,#3a3a3e 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3a3e 75%),linear-gradient(-45deg,transparent 75%,#3a3a3e 75%); }
 .img-wrap img { max-width:100%; max-height:340px; display:none; border-radius:10px; }
 .placeholder { opacity:.3; font-size:2rem; }
 .info-box { background:var(--bg); border-radius:16px; padding:14px 18px; margin-top:24px; font-size:.82rem; opacity:.65; line-height:1.6; text-align:center; box-shadow:inset 4px 4px 8px var(--shadow-dark),inset -4px -4px 8px var(--shadow-light); }
 </style>
-
-<!-- importmap: maps bare 'lodash' specifier that @imgly uses internally -->
-<script type="importmap">
-{
-  "imports": {
-    "lodash": "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/lodash.min.js",
-    "lodash/": "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/"
-  }
-}
-</script>
 </head>
 <body>
 
@@ -100,12 +93,18 @@ h1 { font-size:2rem; font-weight:800; margin-bottom:6px; }
     </div>
 
     <div class="info-box">
-        Gebruikt <strong>@imgly/background-removal</strong> — open-source AI volledig in je browser.
-        Je afbeelding wordt <strong>nooit geüpload</strong>. Eerste gebruik downloadt het model (~40 MB).
+        Gebruikt <strong>Transformers.js</strong> met het <strong>RMBG-1.4</strong> model van Hugging Face —
+        open-source AI volledig in je browser. Je afbeelding wordt <strong>nooit geüpload</strong>.
+        Eerste gebruik downloadt het model (~175 MB, daarna gecached).
     </div>
 </div>
 
 <script type="module">
+import { env, AutoModel, AutoProcessor, RawImage } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0/dist/transformers.min.js';
+
+// Gebruik CDN voor model — geen lokale bestanden nodig
+env.allowLocalModels = false;
+
 // Theme
 const root = document.documentElement;
 if (localStorage.getItem("theme") === "dark") root.classList.add("dark");
@@ -114,7 +113,6 @@ document.getElementById("themeToggle").addEventListener("click", () => {
     localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
 });
 
-// Elements
 const dropzone      = document.getElementById("dropzone");
 const fileInput     = document.getElementById("fileInput");
 const processBtn    = document.getElementById("processBtn");
@@ -128,27 +126,47 @@ const progressFill  = document.getElementById("progressFill");
 const progressLabel = document.getElementById("progressLabel");
 const dzText        = document.getElementById("dzText");
 
-let currentFile      = null;
-let resultBlob       = null;
-let removeBackground = null;
+let currentFile = null;
+let resultBlob  = null;
+let model       = null;
+let processor   = null;
 
-async function ensureLibrary() {
-    if (removeBackground) return true;
+function setProgress(pct, label) {
+    progressFill.style.width = pct + "%";
+    progressLabel.textContent = label;
+}
+
+// Laad model (eenmalig, daarna gecached)
+async function loadModel() {
+    if (model && processor) return true;
     try {
         progressWrap.style.display = "block";
-        progressLabel.textContent = "Bibliotheek laden…";
-        progressFill.style.width = "5%";
-        const mod = await import("https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.mjs");
-        removeBackground = mod.removeBackground;
-        progressWrap.style.display = "none";
+        setProgress(5, "Model downloaden… (eerste keer ~175 MB, daarna gecached)");
+
+        model = await AutoModel.from_pretrained("briaai/RMBG-1.4", {
+            config: { model_type: "custom" },
+            progress_callback: (p) => {
+                if (p.status === "progress" && p.total) {
+                    const pct = Math.round((p.loaded / p.total) * 80);
+                    setProgress(5 + pct, `Downloaden… ${Math.round(p.loaded/1e6)}/${Math.round(p.total/1e6)} MB`);
+                }
+            }
+        });
+
+        setProgress(90, "Processor laden…");
+        processor = await AutoProcessor.from_pretrained("briaai/RMBG-1.4");
+        setProgress(100, "✅ Model klaar!");
+
+        setTimeout(() => { progressWrap.style.display = "none"; }, 1000);
         return true;
     } catch (err) {
-        progressLabel.textContent = "❌ Laden mislukt: " + err.message;
-        console.error("imgly load error:", err);
+        setProgress(0, "❌ Model laden mislukt: " + err.message);
+        console.error(err);
         return false;
     }
 }
 
+// Bestand laden
 function loadFile(file) {
     if (!file) return;
     if (!file.type.startsWith("image/")) { alert("Kies een geldig afbeeldingsbestand."); return; }
@@ -166,14 +184,11 @@ function loadFile(file) {
     processBtn.disabled = false;
     downloadBtn.disabled = true;
     progressWrap.style.display = "none";
-    progressFill.style.width = "0%";
 }
 
-// Click dropzone → open picker
+// Klik / drag-drop
 dropzone.addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
 fileInput.addEventListener("change", () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
-
-// Drag & drop
 ["dragenter","dragover"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.add("drag-over"); }));
 ["dragleave","dragend"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.remove("drag-over"); }));
 dropzone.addEventListener("drop", ev => {
@@ -182,41 +197,74 @@ dropzone.addEventListener("drop", ev => {
     if (ev.dataTransfer?.files[0]) loadFile(ev.dataTransfer.files[0]);
 });
 
-// Process
+// Verwerken
 processBtn.addEventListener("click", async () => {
     if (!currentFile) return;
+
     processBtn.disabled = true;
     downloadBtn.disabled = true;
     resultImg.style.display = "none";
     resultPH.style.display = "inline";
     resultPH.textContent = "⏳";
     progressWrap.style.display = "block";
-    progressFill.style.width = "0%";
+    setProgress(0, "Model laden…");
 
-    if (!await ensureLibrary()) { processBtn.disabled = false; return; }
+    if (!await loadModel()) { processBtn.disabled = false; return; }
 
     try {
-        const blob = await removeBackground(currentFile, {
-            progress: (key, current, total) => {
-                const pct = total > 0 ? Math.round(current / total * 100) : 0;
-                progressFill.style.width = pct + "%";
-                progressLabel.textContent = (key?.includes("fetch") || key?.includes("model"))
-                    ? `Model downloaden… ${pct}%`
-                    : `Achtergrond verwijderen… ${pct}%`;
-            }
-        });
-        resultBlob = blob;
-        resultImg.src = URL.createObjectURL(blob);
-        resultImg.style.display = "block";
-        resultPH.style.display = "none";
-        progressLabel.textContent = "✅ Klaar!";
-        progressFill.style.width = "100%";
-        downloadBtn.disabled = false;
+        setProgress(0, "Afbeelding inlezen…");
+
+        // Laad afbeelding via RawImage
+        const imgUrl = URL.createObjectURL(currentFile);
+        const image = await RawImage.fromURL(imgUrl);
+
+        setProgress(20, "AI verwerkt afbeelding…");
+
+        // Verwerk via model
+        const { pixel_values } = await processor(image);
+        setProgress(50, "Masker berekenen…");
+
+        const { output } = await model({ input: pixel_values });
+        setProgress(80, "Masker toepassen…");
+
+        // Masker op originele afbeelding plakken via canvas
+        const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(image.width, image.height);
+
+        const canvas = document.createElement("canvas");
+        canvas.width  = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext("2d");
+
+        // Teken originele afbeelding
+        const imgEl = new Image();
+        imgEl.src = imgUrl;
+        await new Promise(r => imgEl.onload = r);
+        ctx.drawImage(imgEl, 0, 0);
+
+        // Pas alpha toe via masker
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const maskData  = mask.data;
+        for (let i = 0; i < maskData.length; i++) {
+            imageData.data[i * 4 + 3] = maskData[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        setProgress(100, "✅ Klaar!");
+
+        canvas.toBlob(blob => {
+            resultBlob = blob;
+            resultImg.src = URL.createObjectURL(blob);
+            resultImg.style.display = "block";
+            resultPH.style.display = "none";
+            downloadBtn.disabled = false;
+        }, "image/png");
+
     } catch (err) {
-        progressLabel.textContent = "❌ Fout: " + err.message;
+        setProgress(0, "❌ Fout: " + err.message);
         resultPH.textContent = "❌";
         console.error(err);
     }
+
     processBtn.disabled = false;
 });
 
